@@ -1,0 +1,178 @@
+[gd_scene load_steps=2 format=3 uid="uid://storyrunnersirbug"]
+
+[ext_resource type="Script" path="res://scenes/story/story_runner.gd" id="1_story"]
+
+[node name="StoryRunner" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_story")
+
+[node name="Background" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BackgroundNext" type="TextureRect" parent="."]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.12)
+
+[node name="TopBlock" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 200.0
+offset_top = 72.0
+offset_right = -200.0
+offset_bottom = 260.0
+grow_horizontal = 2
+theme_override_constants/separation = 10
+
+[node name="LocationTitle" type="Label" parent="TopBlock"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.9, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.05, 0.02, 0.9)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 24
+text = "Локация"
+horizontal_alignment = 1
+
+[node name="Scroll" type="Control" parent="TopBlock"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 130)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ScrollBg" type="ColorRect" parent="TopBlock/Scroll"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.95, 0.89, 0.74, 0.97)
+
+[node name="ScrollBorder" type="ColorRect" parent="TopBlock/Scroll"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -3.0
+offset_top = -3.0
+offset_right = 3.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+show_behind_parent = true
+color = Color(0.45, 0.3, 0.14, 0.9)
+
+[node name="Margin" type="MarginContainer" parent="TopBlock/Scroll"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 16
+
+[node name="TextCol" type="VBoxContainer" parent="TopBlock/Scroll/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Speaker" type="Label" parent="TopBlock/Scroll/Margin/TextCol"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.25, 0.1, 1)
+theme_override_font_sizes/font_size = 18
+text = "Говорящий"
+horizontal_alignment = 1
+
+[node name="Body" type="RichTextLabel" parent="TopBlock/Scroll/Margin/TextCol"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.14, 0.09, 0.05, 1)
+theme_override_font_sizes/normal_font_size = 19
+bbcode_enabled = true
+text = "Текст ситуации…"
+fit_content = true
+
+[node name="Choices" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -520.0
+offset_top = -430.0
+offset_right = 520.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 0
+alignment = 1
+theme_override_constants/separation = 32
+
+[node name="Back" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -52.0
+offset_right = 180.0
+offset_bottom = -14.0
+grow_vertical = 0
+text = "На карту"
+
+[node name="FadeOverlay" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+z_index = 100
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+
+[connection signal="pressed" from="Back" to="." method="_on_back_pressed"]

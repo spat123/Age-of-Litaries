@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="16" fill="#2a1f18"/>
+  <rect x="16" y="28" width="96" height="72" rx="8" fill="#c4a574" stroke="#8b6914" stroke-width="3"/>
+  <text x="64" y="72" text-anchor="middle" font-family="Georgia, serif" font-size="28" fill="#2a1f18">BUG</text>
+  <circle cx="36" cy="40" r="4" fill="#5a8f3c"/>
+  <circle cx="92" cy="40" r="4" fill="#b33a3a"/>
+</svg>
