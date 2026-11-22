@@ -1,0 +1,39 @@
+{
+  "_about": "Общие правила первой части. Числа предварительные: их проверяет и помогает подбирать story/tools/build.py.",
+  "stats": {
+    "body": {"name": "Тело", "start": 8, "min": 0, "max": 10, "death_at_min": "death_body"},
+    "mind": {"name": "Менталка", "start": 8, "min": 0, "max": 10, "death_at_min": "death_mind"},
+    "rep": {"name": "Репутация", "start": 5, "min": 0, "max": 10, "death_at_min": "death_rep_low", "event_at_max": "promotion"},
+    "gold": {"name": "Золото", "start": 0, "below_zero": "microloan"}
+  },
+  "life": {
+    "chapters": ["ch0", "ch1", "ch2", "ch3", "ch4"],
+    "deck_picks": 2,
+    "chapter_order": "Порядок сцен задан в главе полем flow. На месте слова deck выпадает случайная доступная сцена из колоды. Сцена с early=true, если выпала, идёт первой."
+  },
+  "verdicts": {
+    "_about": "В конце главы мама проверяет три галочки. 3 — «Молодец», 1–2 — «Ну, сойдёт», 0 — «Позор семьи». Само сравнение всегда стоит Менталку −1: это записано в сцене (enter).",
+    "great": {"name": "Молодец", "min_ticks": 3, "stats": {"mind": 2}, "give": "mom_pride"},
+    "ok": {"name": "Ну, сойдёт", "min_ticks": 1, "stats": {}},
+    "shame": {"name": "Позор семьи", "min_ticks": 0, "stats": {"mind": -2}}
+  },
+  "tags": {
+    "_about": "Род записи в личном деле. Четыре записи одного рода за жизнь дают титул.",
+    "obey": {"title": "Послушный", "heir": "good_conduct_note"},
+    "rebel": {"title": "Бунтарь", "heir": "old_scar"},
+    "deal": {"title": "Делец", "heir": "three_coins"},
+    "invent": {"title": "Изобретатель", "heir": "pig_blueprint"},
+    "tinfoil": {"title": "Конспиролог", "heir": "foil_hat"},
+    "team": {"title": "Душа деревни", "heir": "remembered"}
+  },
+  "titles_need": 4,
+  "subscriptions": {
+    "_about": "Подписка — карточка с платой. trial — сколько сцен бесплатно. Потом каждые every сцен списывается fee. Если золота нет, вместо него списывается Тело.",
+    "wooden_phone": {"trial": 3, "every": 3, "fee": {"mind": -1}},
+    "pacifier": {"trial": 3, "every": 2, "fee": {"gold": -1}, "ends_after_chapter": "ch1"},
+    "sermons": {"trial": 2, "every": 5, "fee": {"mind": -1}, "survives_death": true},
+    "credit": {"trial": 0, "every": 1, "fee": {"gold": -1}, "payments": 5},
+    "closet": {"trial": 3, "every": 2, "fee": {"gold": -1}, "ends_after_chapter": "ch5"},
+    "dragon_sub": {"trial": 0, "every": 8, "fee": {"gold": -1}, "survives_death": true}
+  }
+}

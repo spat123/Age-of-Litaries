@@ -1,0 +1,27 @@
+# Чужие скриншоты для разбора образцов — в репозиторий не кладём.
+# Скачать заново: python3 refs/tools/fetch_screens.py
+refs/screens/
+# Страницы с разбором собираются скриптом и содержат те же скриншоты.
+refs/*.html
+.DS_Store
+
+# Примеры стиля, присланные автором (происхождение картинок неизвестно).
+refs/author_refs/
+# Копии наших фонов для опоры на рисовку: исходники лежат в assets_src/art/backgrounds.
+refs/ui_ref/style_*.png
+__pycache__/
+# Увеличенные вдвое фоны: их заново делает web/tools/upscale_bg.py из assets_src/art/backgrounds.
+assets_src/art/backgrounds_x2/
+
+# копии интерфейса для Фигмы: собирает refs/tools/export_figma.py
+refs/ui_figma/
+
+# Старое и запасное — остаётся на диске, в git не идёт (решение автора 22.11.2026: «без старого»)
+assets_src/art/cards/
+assets_src/art/backgrounds_old/
+assets_src/art/backgrounds_spare/
+assets_src/cards_old/
+assets_src/cards_spare/
+assets_src/faces_old/
+assets_src/cards_full_bg/
+assets_src/cards_full_var/
