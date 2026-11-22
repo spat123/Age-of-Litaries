@@ -13,6 +13,11 @@ JOBS = {
     "o_birds": "the head of a sly black crow peeking through a small brass spyglass, bold and simple.",
     "o_wooden_phone": "a small smartphone made of grey tree bark seen from the back, with a carved turnip on it and a "
                       "knot hole for a camera, a turquoise glow at its edge, bold and simple.",
+    # автор: «меню сделать шестерёнкой как-то или ещё как — делаю меню иконку»; кладётся в web/assets/icons/menu.png
+    "menu_gear": "a round button of dark polished wood with a thin brass rim, a bold cream-white gear cog in the middle.",
+    # автор: «можно не делать круг, а просто гайку с деревянной текстурой — сейчас выбивается»
+    "menu_gear2": "a single gear cog carved from warm brown wood with visible wood grain, eight chunky teeth and a round "
+                  "hole in the middle, slightly turned, no circle or button behind it.",
 }
 only = sys.argv[1].split(",") if len(sys.argv) > 1 else list(JOBS)
 for k, what in [(k, JOBS[k]) for k in only]:

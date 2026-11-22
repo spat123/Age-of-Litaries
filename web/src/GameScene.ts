@@ -268,7 +268,7 @@ export class GameScene extends Phaser.Scene {
       // окно диалога выше и чуть уже (автор: «диалог сделай выше, именно само облачко, и чуть меньше»)
       SHEET_W = 940;
       SHEET_L = 500;
-      SHEET_TOP = 112;
+      SHEET_TOP = 44; // значки ушли в левый угол — окно разговора к самому верху (автор: «диалог вообще поднять»)
       CARDS_L = 470;
       CARDS_R = 1490;
     }
@@ -329,6 +329,7 @@ export class GameScene extends Phaser.Scene {
     if (!TALL) {
       this.hand?.setPosition(-dx, dy);
       this.side?.setPosition(dx, 0);
+      this.hud?.setPosition(-dx, -dy); // значки показателей — в левый верхний угол окна
     }
     if (this.bg) this.bg.setScale(Math.max(gw / this.bg.width, gh / this.bg.height));
     this.shadeImg?.setDisplaySize(gw + 4, gh + 4);
@@ -625,7 +626,7 @@ export class GameScene extends Phaser.Scene {
     if (KIT && this.textures.exists(face) && (round || hasArt(this, "k_avatar")) && FACES[who0]) {
       const fk = round ? "k_avatar_round" : "k_avatar";
       const A = round ? (TALL ? 214 : 196) : TALL ? 200 : 176;
-      const ax = TALL ? W - 28 - A / 2 : x0 - 14 - A / 2, ay = TALL ? SHEET_TOP - 24 - A / 2 : SHEET_TOP + A / 2 - 6;
+      const ax = TALL ? W - 28 - A / 2 : x0 - 14 - A / 2, ay = TALL ? SHEET_TOP - 24 - A / 2 : Math.max(SHEET_TOP + A / 2 - 6, 88 + A / 2); // ниже ряда значков в левом углу
       const m = UI[fk], [sw, shh] = m.size, [wx, wy, ww, wh] = m.window!;
       const wl = ax - A / 2 + (wx / sw) * A, wt = ay - A / 2 + (wy / shh) * A, wW = (ww / sw) * A, wH = (wh / shh) * A;
       const bgc = this.add.graphics();
@@ -1286,8 +1287,8 @@ export class GameScene extends Phaser.Scene {
     const ch = ctx?.ch;
     this.hud.removeAll(true);
     // показатели — маленькими значками в ряд посередине вверху, как счётчики в Hades II
-    if (STATS_LEFT) this.statRow(L, 26, 46, false, 25, animate);
-    else this.statRow(L, SHEET_L + SHEET_W / 2, 46, true, 25, animate);
+    // показатели — в левом верхнем углу (автор: «иконки хп и так далее можно убрать влево»)
+    this.statRow(L, 26, 46, false, 25, animate);
     // цель главы — записка справа вверху, где раньше была доска с карточками
     let ry = 40;
     this.side.removeAll(true); // правый слой: записка цели, «Личное дело», меню
@@ -1313,9 +1314,17 @@ export class GameScene extends Phaser.Scene {
     if (L.records.length) this.side.add(this.dot(bx + 128, fy - 36, 23, C.red, String(L.records.length), L.records.length > 9 ? 20 : 24));
     const t = L.title();
     if (t) this.side.add(plate(this, "Титул: " + TAGS[t].title, 22).setPosition(bx, fy + 84));
-    this.side.add(plank(this, W - 110, H - 46, 170, 62, "Меню", () => this.gameMenu(), 24));
+    // меню — круглая кнопка с шестерёнкой (автор: «меню сделать шестерёнкой как-то или иконкой»)
+    const mx = W - 60, my = H - 56;
+    if (this.textures.exists("icon_menu")) {
+      const gear = this.add.image(mx, my, "icon_menu").setDisplaySize(84, 84).setInteractive({ useHandCursor: true });
+      gear.on("pointerover", () => this.tweens.add({ targets: gear, angle: 30, scale: gear.scale * 1.08, duration: 120 }));
+      gear.on("pointerout", () => this.tweens.add({ targets: gear, angle: 0, scale: 84 / gear.width, duration: 120 }));
+      gear.on("pointerup", () => this.gameMenu());
+      this.side.add(gear);
+    } else this.side.add(plank(this, W - 110, H - 46, 170, 62, "Меню", () => this.gameMenu(), 24));
     const life = "Жизнь " + L.n + (ch ? "  ·  Глава " + ch.id.slice(2) + ". " + ch.title + " (" + ch.age + ")" : "");
-    this.side.add(txt(this, W - 214, H - 44, life, 22, C.cream).setOrigin(1, 0.5).setStroke(hex(C.ink), 6));
+    this.side.add(txt(this, mx - 60, my + 2, life, 22, C.cream).setOrigin(1, 0.5).setStroke(hex(C.ink), 6));
   }
 
   /** Листок с подсказкой; середина в (x, y), за край экрана не выходит. */
