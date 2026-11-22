@@ -80,6 +80,9 @@
       /* холодный «казённый» вид: Небесная HR, список исправлений */
       /* печать на «Итоге жизни»: падает крупной и прозрачной, бьёт — папка вздрагивает */
       #ov-panel { position: relative; }
+      /* гербы титулов на страницах */
+      img.crest { vertical-align: middle; margin-right: 8px; filter: drop-shadow(0 3px 0 rgba(0,0,0,.35)); }
+      .crest-head { display: flex; align-items: center; gap: 6px; font-size: 1.15em; }
       .ov-stamp { position: absolute; right: 13%; top: 42%; z-index: 3; pointer-events: none; font: 400 clamp(30px, 3.6vw, 62px)/1 "Ruslan Display", Georgia, serif; color: #b3261e; text-transform: uppercase; letter-spacing: 1px; padding: 14px 26px; border: 7px solid #b3261e; border-radius: 12px; outline: 3px solid #b3261e; outline-offset: -15px; opacity: 0.85; transform: rotate(-9deg); mix-blend-mode: multiply; animation: stampIn 0.32s 0.45s cubic-bezier(.5, 0, .9, .6) both; }
       @keyframes stampIn { from { opacity: 0; transform: rotate(-22deg) scale(2.8); } to { opacity: 0.85; transform: rotate(-9deg) scale(1); } }
       #ov-panel.thud { animation: thud 0.18s 0.77s ease-out; }

@@ -10,6 +10,9 @@ JOBS = {
     "o_scar": "an old jagged scar mark like a crooked line with a few cross stitches, on a small patch of skin, as a "
               "simple bold emblem.",
     # автор: «ооо, давай иконку ворона и телефона тогда тоже поменяем, хорошо получилось»
+    # автор: «нужно сделать мини-иконку ведра на голову»
+    "o_foil_hat": "a dented grey tin bucket turned upside down to be worn as a hat, with a rope chin strap, bold and "
+                  "simple, no person.",
     "o_birds": "the head of a sly black crow peeking through a small brass spyglass, bold and simple.",
     "o_wooden_phone": "a small smartphone made of grey tree bark seen from the back, with a carved turnip on it and a "
                       "knot hole for a camera, a turquoise glow at its edge, bold and simple.",

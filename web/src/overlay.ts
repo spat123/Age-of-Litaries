@@ -1,6 +1,9 @@
 // Длинные тексты, списки и простые меню показываем обычной вёрсткой поверх игры:
 // личное дело, смерть, Небесная HR, список исправлений, настройки.
 import { D, TAGS } from "./data";
+import { TEX } from "./assets";
+/** Герб титула картинкой для страниц (если нарисован). */
+export const crestImg = (t: string, size: number) => (TEX["crest_" + t] ? '<img class="crest" src="' + TEX["crest_" + t] + '" width="' + size + '" height="' + size + '" alt="">' : "");
 import type { Life, Meta, PathMark } from "./rules";
 import { loadSettings, saveSettings } from "./audio";
 
@@ -63,7 +66,7 @@ export const showChoice = (title: string, html: string, main: string, other: str
 /** Личное дело героя: все записи этой жизни и титул. */
 export function showFile(L: Life): Promise<void> {
   const t = L.title();
-  const head = t ? "<p><b>Титул: " + esc(TAGS[t].title) + ".</b></p>" : "<p>Титула пока нет: нужно четыре записи одного рода.</p>";
+  const head = t ? '<p class="crest-head">' + crestImg(t, 96) + "<b>Титул: " + esc(TAGS[t].title) + ".</b></p>" : "<p>Титула пока нет: нужно четыре записи одного рода.</p>";
   const list = L.records.length
     ? "<ol>" + L.records.map((r) => {
         const rec = D.records[r] || { text: r };

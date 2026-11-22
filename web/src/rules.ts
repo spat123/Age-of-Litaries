@@ -1,6 +1,7 @@
 // Правила игры. Экрана здесь нет: всё, что надо показать или спросить, уходит в io.
 // Это тот же порядок действий, что в story/tools/build.py (класс Life): правку правил вносим в оба места.
 import { D, STAT, SUBS, TAGS, UNIVERSAL, SCENES, StatKey } from "./data";
+import { crestImg } from "./overlay";
 
 export type LogLine = { stat?: StatKey; d?: number; give?: string; take?: string; record?: string; note?: string };
 export type Ctx = { scene: any; ch?: any; text: string; adds?: string[]; enter?: LogLine[]; then?: string | null };
@@ -515,7 +516,7 @@ export async function afterlife(L: Life, io: IO, alive: boolean) {
     "Мама сказала: «Молодец» — " + said("great") + ", «Ну, сойдёт» — " + said("ok") + ", «Позор семьи» — " + said("shame") + ".",
     "Записей в личном деле: " + L.records.length + ".",
   ].filter(Boolean);
-  const tags = Object.keys(TAGS).map((t) => esc(TAGS[t].title) + ": " + (cnt[t] || 0) + " из " + need + ((cnt[t] || 0) >= need ? " — <b>титул</b>" : ""));
+  const tags = Object.keys(TAGS).map((t) => ((cnt[t] || 0) >= need ? crestImg(t, 44) : "") + esc(TAGS[t].title) + ": " + (cnt[t] || 0) + " из " + need + ((cnt[t] || 0) >= need ? " — <b>титул</b>" : ""));
   let sum = li(rows) + "<p>Записи по родам. " + need + " записи одного рода дают титул и подарок на следующую жизнь:</p>" + li(tags);
   if (seen) {
     const all = Object.keys(A.endings || {}).filter((k) => k[0] !== "_").length;

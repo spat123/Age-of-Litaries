@@ -1687,7 +1687,15 @@ export class GameScene extends Phaser.Scene {
     this.side.add(plank(this, bx, fy, 270, 78, "Личное дело", () => showFile(L), 27));
     if (L.records.length) this.side.add(this.dot(bx + 128, fy - 36, 23, C.red, String(L.records.length), L.records.length > 9 ? 20 : 24));
     const t = L.title();
-    if (t) this.side.add(plate(this, "Титул: " + TAGS[t].title, 22).setPosition(bx, fy + 84));
+    if (t) {
+      // титул — гербом с подписью (автор: «титулы оформил бы нормально — в виде гербов»)
+      if (this.textures.exists("crest_" + t)) {
+        const cr = this.add.image(bx, fy + 140, "crest_" + t);
+        cr.setScale(170 / Math.max(cr.width, cr.height));
+        const nm = txt(this, bx, fy + 232, TAGS[t].title, 26, C.cream).setOrigin(0.5).setStroke(hex(C.ink), 7);
+        this.side.add([cr, nm]);
+      } else this.side.add(plate(this, "Титул: " + TAGS[t].title, 22).setPosition(bx, fy + 84));
+    }
     // меню — круглая кнопка с шестерёнкой (автор: «меню сделать шестерёнкой как-то или иконкой»)
     const mx = W - 60, my = H - 56;
     if (this.textures.exists("icon_menu")) {
