@@ -7,6 +7,8 @@
     <style>
       html, body { margin: 0; height: 100%; background: #17110b; overflow: hidden; }
       #game { position: fixed; inset: 0; }
+      /* полосы по краям, где окно шире или уже игры: тот же фон сцены, растянутый и притемнённый */
+      #backdrop { position: fixed; inset: -40px; background: #17110b center / cover no-repeat; filter: blur(14px) brightness(0.55); transition: background-image 0.3s; }
       #overlay { position: fixed; inset: 0; background: rgba(20, 12, 6, 0.72); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
       #overlay[hidden] { display: none; }
       #hint { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 9; background: #2a1a10; color: #ffe9b8; font: 700 14px "Balsamiq Sans", sans-serif; padding: 6px 14px; border-radius: 12px; }
@@ -83,6 +85,7 @@
     </style>
   </head>
   <body>
+    <div id="backdrop"></div>
     <div id="game"></div>
     <div id="hint" hidden>Поверни телефон стоймя: так буквы крупнее</div>
     <div id="overlay" hidden>

@@ -134,7 +134,45 @@ def main():
             im.save(os.path.join(OUT, key + ".webp"), quality=88, method=4)
             print(key, im.size)
     balance(meta, bgs)
+    make_icons(meta)
     json.dump(meta, open(os.path.join(OUT, "cards_full.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+
+
+def make_icons(meta):
+    """Значки уникальных карточек для ячеек слева (автор: «нужно специальные иконки сделать для предметов, ну или почему
+    они нечёткие»). Большой рисунок, уменьшенный в игре в 8–10 раз, рябит и мылится; поэтому значок готовим заранее:
+    квадрат 192 точки — фон с лучами того же цвета, что у карточки, сверху рисунок, уменьшенный качественно."""
+    out_dir = os.path.join(ROOT, "web", "assets", "card_icons")
+    os.makedirs(out_dir, exist_ok=True)
+    cards = json.load(open(os.path.join(ROOT, "story", "cards.json"), encoding="utf-8"))
+    arts = sorted({v["art"] for k, v in cards.items() if k != "_about" and isinstance(v, dict) and v.get("art")})
+    S = 192
+    for art in arts:
+        src = os.path.join(OUT, art + ".webp")
+        if not os.path.exists(src):
+            continue
+        m = meta.get(art, {})
+        if m.get("bgimg") and os.path.exists(os.path.join(BG_OUT, m["bgimg"] + ".webp")):
+            bg = Image.open(os.path.join(BG_OUT, m["bgimg"] + ".webp")).convert("RGBA").resize((S, S), Image.LANCZOS)
+        else:
+            bg = Image.new("RGBA", (S, S), m.get("bg", DEFAULT))
+        own = os.path.join(ROOT, "assets_src", "card_icons_src", art + ".png")
+        if os.path.exists(own):
+            # свой значок (одна вещь крупно): вырезаем белый фон и ставим как вырезанный рисунок
+            fig, _, _ = cut(Image.open(own), inner=True, size=512, margin=0.02)
+            m = dict(m, cut=True, full=False)
+        else:
+            fig = Image.open(src).convert("RGBA")
+        if m.get("cut") and not m.get("full"):
+            fig = fig.crop(fig.getchannel("A").getbbox())
+            k = min(S * 0.86 / fig.width, S * 0.86 / fig.height)
+            fig = fig.resize((max(1, round(fig.width * k)), max(1, round(fig.height * k))), Image.LANCZOS)
+            bg.alpha_composite(fig, ((S - fig.width) // 2, (S - fig.height) // 2))
+        else:
+            fig = fig.resize((S, S), Image.LANCZOS)
+            bg.alpha_composite(fig)
+        bg.convert("RGB").save(os.path.join(out_dir, art + ".webp"), quality=90, method=4)
+    print("значков карточек:", len(arts))
 
 
 def balance(meta, bgs):

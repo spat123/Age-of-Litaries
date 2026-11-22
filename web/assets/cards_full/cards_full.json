@@ -11,11 +11,41 @@
   "bottom": false,
   "bgimg": "purple"
  },
+ "g_cry__baby": {
+  "cut": true,
+  "full": true,
+  "bg": "#7a3fb0",
+  "bgimg": "purple"
+ },
  "g_eyes": {
   "cut": true,
   "full": true,
   "bg": "#e8731f",
   "bgimg": "orange"
+ },
+ "g_eyes__adult": {
+  "cut": true,
+  "full": true,
+  "bg": "#d23a2e",
+  "bgimg": "red"
+ },
+ "g_eyes__baby": {
+  "cut": true,
+  "bg": "#1f8a8a",
+  "bottom": false,
+  "bgimg": "teal"
+ },
+ "g_eyes__soul": {
+  "cut": true,
+  "full": true,
+  "bg": "#e8b21f",
+  "bgimg": "yellow"
+ },
+ "g_eyes__teen": {
+  "cut": true,
+  "full": true,
+  "bg": "#2f5fd0",
+  "bgimg": "blue"
  },
  "g_eyes_shut": {
   "cut": true,
@@ -23,11 +53,23 @@
   "bg": "#e8731f",
   "bgimg": "orange"
  },
+ "g_eyes_shut__baby": {
+  "cut": true,
+  "bg": "#3aa63a",
+  "bottom": false,
+  "bgimg": "green"
+ },
  "g_fist": {
   "cut": true,
   "bg": "#d0452f",
   "bottom": true,
   "bgimg": "red"
+ },
+ "g_fist__adult": {
+  "cut": true,
+  "full": true,
+  "bg": "#e8731f",
+  "bgimg": "orange"
  },
  "g_hand_take": {
   "cut": true,
@@ -35,11 +77,29 @@
   "bg": "#1f8a8a",
   "bgimg": "teal"
  },
+ "g_hand_take__soul": {
+  "cut": true,
+  "full": true,
+  "bg": "#e04a9a",
+  "bgimg": "pink"
+ },
  "g_hug": {
   "cut": true,
   "full": true,
   "bg": "#e04a9a",
   "bgimg": "pink"
+ },
+ "g_hug__adult": {
+  "cut": true,
+  "full": true,
+  "bg": "#7a3fb0",
+  "bgimg": "purple"
+ },
+ "g_hug__baby": {
+  "cut": true,
+  "full": true,
+  "bg": "#d23a2e",
+  "bgimg": "red"
  },
  "g_mouth": {
   "cut": true,
@@ -47,11 +107,41 @@
   "bg": "#e04a9a",
   "bgimg": "pink"
  },
+ "g_mouth__adult": {
+  "cut": true,
+  "full": true,
+  "bg": "#1f8a8a",
+  "bgimg": "teal"
+ },
+ "g_mouth__baby": {
+  "cut": true,
+  "full": true,
+  "bg": "#e8b21f",
+  "bgimg": "yellow"
+ },
+ "g_mouth__teen": {
+  "cut": true,
+  "full": true,
+  "bg": "#2f5fd0",
+  "bgimg": "blue"
+ },
  "g_point": {
   "cut": true,
   "full": true,
   "bg": "#e8b21f",
   "bgimg": "yellow"
+ },
+ "g_point__baby": {
+  "cut": true,
+  "bg": "#3aa63a",
+  "bottom": false,
+  "bgimg": "green"
+ },
+ "g_point__soul": {
+  "cut": true,
+  "full": true,
+  "bg": "#e8731f",
+  "bgimg": "orange"
  },
  "g_pray": {
   "cut": true,
@@ -59,9 +149,45 @@
   "bottom": true,
   "bgimg": "yellow"
  },
+ "g_pray__adult": {
+  "cut": true,
+  "full": true,
+  "bg": "#e04a9a",
+  "bgimg": "pink"
+ },
+ "g_pray__soul": {
+  "cut": true,
+  "bg": "#7a3fb0",
+  "bottom": true,
+  "bgimg": "purple"
+ },
+ "g_pray__teen": {
+  "cut": true,
+  "full": true,
+  "bg": "#d23a2e",
+  "bgimg": "red"
+ },
  "g_run": {
   "cut": true,
   "bg": "#3aa0d8",
+  "bottom": false,
+  "bgimg": "blue"
+ },
+ "g_run__adult": {
+  "cut": true,
+  "bg": "#1f8a8a",
+  "bottom": false,
+  "bgimg": "teal"
+ },
+ "g_run__baby": {
+  "cut": true,
+  "bg": "#e8b21f",
+  "bottom": false,
+  "bgimg": "yellow"
+ },
+ "g_run__soul": {
+  "cut": true,
+  "bg": "#2f5fd0",
   "bottom": false,
   "bgimg": "blue"
  },
@@ -71,7 +197,43 @@
   "bg": "#e8b21f",
   "bgimg": "yellow"
  },
+ "g_shout__adult": {
+  "cut": true,
+  "full": true,
+  "bg": "#3aa63a",
+  "bgimg": "green"
+ },
+ "g_shout__baby": {
+  "cut": true,
+  "bg": "#e8731f",
+  "bottom": false,
+  "bgimg": "orange"
+ },
+ "g_shout__teen": {
+  "cut": true,
+  "full": true,
+  "bg": "#e04a9a",
+  "bgimg": "pink"
+ },
  "g_silence": {
+  "cut": true,
+  "full": true,
+  "bg": "#1f8a8a",
+  "bgimg": "teal"
+ },
+ "g_silence__adult": {
+  "cut": true,
+  "full": true,
+  "bg": "#7a3fb0",
+  "bgimg": "purple"
+ },
+ "g_silence__baby": {
+  "cut": true,
+  "bg": "#d23a2e",
+  "bottom": false,
+  "bgimg": "red"
+ },
+ "g_silence__teen": {
   "cut": true,
   "full": true,
   "bg": "#1f8a8a",
@@ -83,11 +245,47 @@
   "bottom": false,
   "bgimg": "yellow"
  },
+ "g_sing__adult": {
+  "cut": true,
+  "full": true,
+  "bg": "#e8b21f",
+  "bgimg": "yellow"
+ },
+ "g_sing__baby": {
+  "cut": true,
+  "bg": "#2f5fd0",
+  "bottom": false,
+  "bgimg": "blue"
+ },
  "g_sit": {
   "cut": true,
   "full": true,
   "bg": "#e8b21f",
   "bgimg": "yellow"
+ },
+ "g_sit__adult": {
+  "cut": true,
+  "bg": "#3aa63a",
+  "bottom": true,
+  "bgimg": "green"
+ },
+ "g_sit__baby": {
+  "cut": true,
+  "bg": "#e8731f",
+  "bottom": false,
+  "bgimg": "orange"
+ },
+ "g_sit__soul": {
+  "cut": true,
+  "full": true,
+  "bg": "#e04a9a",
+  "bgimg": "pink"
+ },
+ "g_sit__teen": {
+  "cut": true,
+  "full": true,
+  "bg": "#7a3fb0",
+  "bgimg": "purple"
  },
  "g_sleep": {
   "cut": true,
@@ -107,11 +305,29 @@
   "bg": "#3aa63a",
   "bgimg": "green"
  },
+ "g_tongue__baby": {
+  "cut": true,
+  "bg": "#d23a2e",
+  "bottom": false,
+  "bgimg": "red"
+ },
  "g_walk_by": {
   "cut": true,
   "full": true,
   "bg": "#e8731f",
   "bgimg": "orange"
+ },
+ "g_walk_by__adult": {
+  "cut": true,
+  "bg": "#1f8a8a",
+  "bottom": false,
+  "bgimg": "teal"
+ },
+ "g_walk_by__teen": {
+  "cut": true,
+  "bg": "#e8b21f",
+  "bottom": false,
+  "bgimg": "yellow"
  },
  "g_write": {
   "cut": true,
@@ -225,6 +441,18 @@
   "cut": true,
   "full": true,
   "bg": "#2f8f5b",
+  "bgimg": "green"
+ },
+ "o_foil_hat__adult": {
+  "cut": true,
+  "full": true,
+  "bg": "#2f5fd0",
+  "bgimg": "blue"
+ },
+ "o_foil_hat__teen": {
+  "cut": true,
+  "full": true,
+  "bg": "#3aa63a",
   "bgimg": "green"
  },
  "o_gate_knock": {
@@ -401,6 +629,12 @@
   "bg": "#3a6fb0",
   "bgimg": "blue"
  },
+ "o_sand__adult": {
+  "cut": true,
+  "full": true,
+  "bg": "#e8731f",
+  "bgimg": "orange"
+ },
  "o_scar": {
   "cut": true,
   "bg": "#3aa63a",
@@ -502,5 +736,17 @@
   "bg": "#c8442f",
   "bottom": false,
   "bgimg": "red"
+ },
+ "o_wooden_sword__adult": {
+  "cut": true,
+  "bg": "#e04a9a",
+  "bottom": false,
+  "bgimg": "pink"
+ },
+ "o_wooden_sword__teen": {
+  "cut": true,
+  "bg": "#7a3fb0",
+  "bottom": false,
+  "bgimg": "purple"
  }
 }

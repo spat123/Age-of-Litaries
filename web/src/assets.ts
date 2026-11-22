@@ -25,6 +25,9 @@ for (const [p, u] of Object.entries(full)) TEX["full_" + name(p)] = u;
 // нарисованные фоны с лучами под рисунки без фона: web/assets/card_bg/<цвет>.webp → «cbg_<цвет>»
 const cbg = import.meta.glob("../assets/card_bg/*.webp", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
 for (const [p, u] of Object.entries(cbg)) TEX["cbg_" + name(p)] = u;
+// значки уникальных карточек для ячеек (готовые 192 точки): web/assets/card_icons/<рисунок>.webp → «cico_<рисунок>»
+const cico = import.meta.glob("../assets/card_icons/*.webp", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
+for (const [p, u] of Object.entries(cico)) TEX["cico_" + name(p)] = u;
 
 /** Фон, которого ещё нет, заменяется похожим. */
 // Запасной фон: что показывать, пока своего рисунка у места нет. Берётся из story/bg.json (поле now).

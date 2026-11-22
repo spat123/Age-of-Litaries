@@ -51,7 +51,8 @@ const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: "game",
   backgroundColor: "#17110b",
-  scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, width: W, height: H },
+  // EXPAND: холст на всё окно, игра 1920×1080 по центру, лишнее место по краям закрывает фон сцены (GameScene.fitWindow)
+  scale: { mode: Phaser.Scale.EXPAND, autoCenter: Phaser.Scale.CENTER_BOTH, width: W, height: H },
   scene: [GameScene],
 });
 

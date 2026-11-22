@@ -4,7 +4,7 @@
 import Phaser from "phaser";
 import { D, STAT, SPEAK, TAGS, StatKey } from "./data";
 import { Life, IO, Ctx, LogLine, Tick, Save, Meta, run, checkSave } from "./rules";
-import { BG_FALLBACK, PLACEHOLDER, loadTextures } from "./assets";
+import { BG_FALLBACK, PLACEHOLDER, TEX, loadTextures } from "./assets";
 // где на каждом портрете голова: квадрат [x, y, сторона] в точках картинки (готовит web/tools/cut_faces.py)
 // какие рисунки во всё окно вырезаны без фона и какой цвет фона с лучами под ними (готовит web/tools/prepare_card_full.py)
 const CUT: Record<string, { cut: boolean; bg: string; bottom?: boolean; full?: boolean; bgimg?: string | null }> =
@@ -68,7 +68,9 @@ export class GameScene extends Phaser.Scene {
   faceBox!: Box;
   sysFrame: Phaser.GameObjects.Image | null = null;
   cards!: Box;
-  cardFx!: Phaser.GameObjects.Container; // свет позади особых карточек: ниже всех карточек, чтобы не ложился на соседние
+  cardFx!: Phaser.GameObjects.Container;
+  shadeImg?: Phaser.GameObjects.Image;
+  curCh = ""; // глава, в которой идёт выбор: по ней берётся рисунок героя нужного возраста // свет позади особых карточек: ниже всех карточек, чтобы не ложился на соседние
   hud!: Box;
   side!: Box;
   hand!: Box;
@@ -273,7 +275,11 @@ export class GameScene extends Phaser.Scene {
     this.bg = this.add.image(W / 2, H / 2, "bg_act0_void").setDepth(0);
     this.bg.setScale(Math.max(W / this.bg.width, H / this.bg.height));
     makeShade(this, H, TALL);
-    this.add.image(W / 2, H / 2, "shade").setDisplaySize(W, H).setDepth(1);
+    this.shadeImg = this.add.image(W / 2, H / 2, "shade").setDisplaySize(W, H).setDepth(1);
+    // игра на всё окно (автор: «растяни и фон тоже — сейчас по бокам полосы»): холст растягивается под окно,
+    // игра остаётся 1920×1080 по центру, а фон и затемнение закрывают всё окно
+    this.scale.on("resize", () => this.fitWindow());
+    this.fitWindow();
     // полка, на которой стоят карточки
     const s = this.add.graphics().setDepth(5);
     if (KIT && TALL) {
@@ -306,11 +312,26 @@ export class GameScene extends Phaser.Scene {
     this.front = this.add.container(0, 0).setDepth(40);
     this.tip = this.add.container(0, 0).setDepth(50);
     this.input.keyboard?.on("keydown", (e: KeyboardEvent) => {
+      if (e.code === "KeyF") return this.scale.toggleFullscreen(); // F — игра на весь экран и обратно
       if (overlayOpen()) return; // поверх игры открыта страница: клавиши не для карточек
       if ((e.code === "Space" || e.code === "Enter") && this.nextHandler) this.nextHandler();
       const n = parseInt(e.key, 10);
       if (n >= 1 && n <= 9 && this.keyHandler) this.keyHandler(n);
     });
+  }
+
+  /** Окно шире или выше игры: камера сдвигается так, чтобы игра была по центру, фон закрывает всё окно. */
+  fitWindow() {
+    const gw = this.scale.gameSize.width, gh = this.scale.gameSize.height;
+    const dx = (gw - W) / 2, dy = (gh - H) / 2;
+    this.cameras.main.setScroll(-dx, -dy);
+    // края: столбик карточек — к левому нижнему углу окна, цель, «Личное дело» и «Меню» — к правому краю
+    if (!TALL) {
+      this.hand?.setPosition(-dx, dy);
+      this.side?.setPosition(dx, 0);
+    }
+    if (this.bg) this.bg.setScale(Math.max(gw / this.bg.width, gh / this.bg.height));
+    this.shadeImg?.setDisplaySize(gw + 4, gh + 4);
   }
 
   setBg(key: string) {
@@ -320,7 +341,10 @@ export class GameScene extends Phaser.Scene {
     if (k === this.bgKey) return;
     this.bgKey = k;
     this.bg.setTexture(k);
-    this.bg.setScale(Math.max(W / this.bg.width, H / this.bg.height));
+    // тот же фон — на подложку страницы, чтобы полосы по краям окна были не пустыми
+    const bd = document.getElementById("backdrop");
+    if (bd && TEX[k]) bd.style.backgroundImage = `url(${TEX[k]})`;
+    this.fitWindow();
     this.bg.setAlpha(0.35);
     this.tweens.add({ targets: this.bg, alpha: 1, duration: 350 });
   }
@@ -428,7 +452,9 @@ export class GameScene extends Phaser.Scene {
       g.fillStyle(cd ? (cd.universal ? C.picHelper : cd.term === "sub" ? C.picSpecial : C.picNormal) : 0x3a2616, 1)
         .fillRoundedRect(wl - 4, wt - 4, wW + 8, wH + 8, tile * 0.16);
       chip.add(g);
-      if (cd) chip.add(this.art(cd.art, wl + wW / 2, wt + wH / 2, wW - 8, wH - 8));
+      // готовый чёткий значок (фон с лучами и рисунок), если есть; иначе прежний рисунок
+      if (cd && this.textures.exists("cico_" + cd.art)) chip.add(this.add.image(wl + wW / 2, wt + wH / 2, "cico_" + cd.art).setDisplaySize(wW + 6, wH + 6));
+      else if (cd) chip.add(this.art(cd.art, wl + wW / 2, wt + wH / 2, wW - 8, wH - 8));
       chip.add(this.add.image(0, 0, sk).setDisplaySize(tile, tile));
     } else {
       if (hasArt(this, "k_slot")) chip.add(this.add.image(0, 0, "k_slot").setDisplaySize(tile + 10, tile + 10));
@@ -484,6 +510,13 @@ export class GameScene extends Phaser.Scene {
     const g = this.add.graphics();
     g.fillStyle(0x1d2a4a, 1).fillCircle(x, y, r + 2).lineStyle(5, C.ink, 1).strokeCircle(x, y, r + 2);
     return [g, this.add.image(x, y, "icon_star").setDisplaySize(r * 1.9, r * 1.9)];
+  }
+  /** Рисунок во всё окно с героем нужного возраста: до рождения (глава 0) — несобранный герой «__soul»,
+   *  в младенчестве (глава 1) — младенец «__baby»; если такого нет — обычный рисунок. */
+  artKey(art: string) {
+    // глава 2 (детство) — мальчик, обычный рисунок; 3 — подросток; 4–6 — взрослый
+    const age = { ch0: "__soul", ch1: "__baby", ch3: "__teen", ch4: "__adult", ch5: "__adult", ch6: "__adult" }[this.curCh] || "";
+    return age && this.textures.exists("full_" + art + age) ? "full_" + art + age : "full_" + art;
   }
   /** Картинка, заполняющая прямоугольник целиком (лишнее по краям обрезается). x, y — левый верхний угол. */
   fullArt(key: string, x: number, y: number, w: number, h: number, plain = false): Phaser.GameObjects.GameObject {
@@ -662,7 +695,8 @@ export class GameScene extends Phaser.Scene {
       const card = artBox(this, ck, w, h, 14);
       card.addAt(win, card.length - 1);
       // новый рисунок во всё окно — под рамкой, края прячутся под неё
-      if (this.textures.exists("full_" + c.art)) card.addAt(this.fullArt("full_" + c.art, picL - 6, picTop - 6, picW + 12, picH + 12), card.length - 1);
+      const fk = this.artKey(c.art);
+      if (this.textures.exists(fk)) card.addAt(this.fullArt(fk, picL - 6, picTop - 6, picW + 12, picH + 12), card.length - 1);
       back.push(card);
     } else {
       const g = slab(this, w, h, { r: 24, lipH: 14, shadow: 14 });
@@ -674,7 +708,7 @@ export class GameScene extends Phaser.Scene {
       g.lineStyle(6, C.ink, 1).strokeRoundedRect(picL, picTop, picW, picH, 14);
       back.push(g);
     }
-    const pic = this.textures.exists("full_" + c.art) && ck ? this.add.container(0, 0) : this.art(c.art, picL + picW / 2, picTop + picH / 2, picW - 28, picH - 24);
+    const pic = this.textures.exists(this.artKey(c.art)) && ck ? this.add.container(0, 0) : this.art(c.art, picL + picW / 2, picTop + picH / 2, picW - 28, picH - 24);
     // подпись; если выбор закрыт — под ней причина
     // у резной карточки подпись стоит на табличке внутри рамы
     let labTop = picTop + picH, labH = h / 2 - 14 - labTop, labW = w - 36;
@@ -842,7 +876,7 @@ export class GameScene extends Phaser.Scene {
       win.fillStyle(winColor, 1).fillRect(pl - 6, pt - 6, ww * k + 12, wh * k + 12);
       const card = artBox(this, "k_row", w, h, 10);
       card.addAt(win, card.length - 1);
-      const fk = "full_" + c.art;
+      const fk = this.artKey(c.art);
       if (this.textures.exists(fk)) card.addAt(this.fullArt(fk, pl - 6, pt - 6, ww * k + 12, wh * k + 12), card.length - 1);
       pic = this.textures.exists(fk) ? this.add.container(0, 0) : this.art(c.art, pl + (ww * k) / 2, pt + (wh * k) / 2, ww * k - 16, wh * k - 16);
       box.add([hot, card, pic]);
@@ -952,6 +986,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   pick(L: Life, opts: any[], ctx: Ctx): Promise<any> {
+    this.curCh = ctx.ch?.id || "";
     this.life = L;
     this.chosen = null;
     this.setBg(ctx.scene.bg);
@@ -1255,23 +1290,24 @@ export class GameScene extends Phaser.Scene {
     else this.statRow(L, SHEET_L + SHEET_W / 2, 46, true, 25, animate);
     // цель главы — записка справа вверху, где раньше была доска с карточками
     let ry = 40;
+    this.side.removeAll(true); // правый слой: записка цели, «Личное дело», меню
     if (ch?.goal) {
       const nt = note(this, "ЦЕЛЬ ГЛАВЫ", ch.goal, 260);
-      this.hud.add(nt.setPosition(W - 30 - nt.width / 2, 20 + nt.height / 2).setAngle(2));
+      this.side.add(nt.setPosition(W - 30 - nt.width / 2, 20 + nt.height / 2).setAngle(2)); // в правом слое: прижимается к краю окна
       ry = 20 + nt.height + 14;
     }
 
     // уникальные карточки — в ряд слева внизу, как дары в Hades; по три в ряд, лишние встают рядом выше
     this.hand.removeAll(true);
     const cards = [...L.cards];
-    const tile = 88, gap = 12, perCol = 5, n = Math.max(3, cards.length);
+    // пустых ячеек не рисуем: столбик ровно по числу карточек (автор: «если нет — уберём»)
+    const tile = 88, gap = 12, perCol = 5, n = cards.length;
     for (let i = 0; i < n; i++) {
       const x = 30 + tile / 2 + Math.floor(i / perCol) * (tile + gap), y = H - 30 - tile / 2 - (i % perCol) * (tile + gap);
-      this.hand.add(this.handChip(L, cards[i] || null, x, y, tile, (t, tx) => this.showTip(x + 300, y - 60, t, tx), () => this.hideTip()));
+      this.hand.add(this.handChip(L, cards[i] || null, x, y, tile, (t, tx) => this.showTip(x + this.hand.x + 300, y + this.hand.y - 60, t, tx), () => this.hideTip()));
     }
 
     // под запиской: личное дело и титул; внизу справа: какая жизнь и меню
-    this.side.removeAll(true);
     const bx = W - 30 - 135, fy = ry + 40;
     this.side.add(plank(this, bx, fy, 270, 78, "Личное дело", () => showFile(L), 27));
     if (L.records.length) this.side.add(this.dot(bx + 128, fy - 36, 23, C.red, String(L.records.length), L.records.length > 9 ? 20 : 24));
