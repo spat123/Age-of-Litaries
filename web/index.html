@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Сэр Баг: Исходный Код Средневековья</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #17110b; overflow: hidden; }
+      #game { position: fixed; inset: 0; }
+      #overlay { position: fixed; inset: 0; background: rgba(20, 12, 6, 0.72); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
+      #overlay[hidden] { display: none; }
+      #hint { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 9; background: #2a1a10; color: #ffe9b8; font: 700 14px "Balsamiq Sans", sans-serif; padding: 6px 14px; border-radius: 12px; }
+      #hint[hidden] { display: none; }
+      #ov-panel { background: #f9ebc8; color: #2a1a10; border: 8px solid #2a1a10; border-radius: 22px; max-width: 780px; width: 100%; max-height: 88vh; overflow: auto; padding: 22px 28px; box-shadow: inset 0 -12px 0 #ecd6a2, 0 14px 0 rgba(0, 0, 0, 0.45); font: 21px/1.5 Alice, Georgia, serif; }
+      #ov-title { font: 700 34px/1.15 "Balsamiq Sans", "Trebuchet MS", sans-serif; color: #8f2a1b; margin: 0 0 10px; }
+      #ov-body p { margin: 0 0 12px; }
+      #ov-body ol, #ov-body ul { margin: 0 0 12px; padding-left: 28px; }
+      #ov-body li { margin: 5px 0; }
+      #ov-body .tag { font: 700 15px "Balsamiq Sans", sans-serif; color: #7a6248; border: 1px solid #c9b48c; border-radius: 99px; padding: 0 9px; white-space: nowrap; }
+      #ov-btn { display: block; width: 100%; margin-top: 8px; font: 700 27px "Balsamiq Sans", "Trebuchet MS", sans-serif; color: #fff; text-shadow: 0 2px 0 #2a1a10; background: #46a052; border: 7px solid #2a1a10; border-radius: 16px; padding: 9px 9px 15px; box-shadow: inset 0 -9px 0 #2f6b3a; cursor: pointer; }
+      #ov-btn:hover { background: #55b662; }
+      #ov-body .set { display: flex; align-items: center; gap: 14px; font: 700 22px "Balsamiq Sans", "Trebuchet MS", sans-serif; }
+      #ov-body .set input[type="checkbox"] { width: 28px; height: 28px; accent-color: #46a052; }
+      #ov-body .set input[type="range"] { flex: 1; height: 28px; accent-color: #46a052; }
+      .ov-other { display: block; width: 100%; margin-top: 12px; font: 700 21px "Balsamiq Sans", "Trebuchet MS", sans-serif; color: #2a1a10; background: #ecd6a2; border: 6px solid #2a1a10; border-radius: 14px; padding: 7px 7px 11px; box-shadow: inset 0 -6px 0 #cdb37c; cursor: pointer; }
+      .ov-other:hover { background: #f4e2b6; }
+      /* лента пути */
+      #ov-panel.wide { max-width: 1000px; }
+      #ov-body .path { display: flex; list-style: none; margin: 14px 0 12px; padding: 0; }
+      #ov-body .path li { flex: 1; min-width: 0; position: relative; margin: 0; text-align: center; }
+      #ov-body .path li::before { content: ""; position: absolute; z-index: 0; top: 37px; left: -50%; width: 100%; height: 8px; background: #2a1a10; }
+      #ov-body .path li:first-child::before { display: none; }
+      #ov-body .path li.next::before { background: none; height: 0; top: 38px; border-top: 6px dashed #b89f74; }
+      .path .pic { position: relative; z-index: 1; display: block; box-sizing: border-box; width: 82px; height: 82px; margin: 0 auto; border-radius: 50%; border: 6px solid #2a1a10; background: #ecd6a2 center / cover; }
+      .path li.next .pic { filter: grayscale(1) brightness(0.8); border-color: #a58e66; }
+      .path li.here .pic { border-color: #c9741a; box-shadow: 0 0 0 6px #ffd76a; }
+      .path .txt { display: block; }
+      .path .name { display: block; margin-top: 8px; font: 700 17px/1.15 "Balsamiq Sans", "Trebuchet MS", sans-serif; }
+      .path .age { display: block; font: 13px/1.3 "Balsamiq Sans", "Trebuchet MS", sans-serif; color: #7a6248; }
+      .path li.next .name { color: #9a8566; }
+      .path .here-tag { display: inline-block; margin-top: 4px; font: 700 13px/1.5 "Balsamiq Sans", sans-serif; color: #fff; background: #c9741a; border-radius: 99px; padding: 0 9px; }
+      .path .marks { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; margin-top: 4px; }
+      .path .mark { font: 700 13px/1.5 "Balsamiq Sans", sans-serif; color: #f9ebc8; background: #2a1a10; border-radius: 99px; padding: 0 7px; white-space: nowrap; }
+      .path .mark.win { background: #2f6b3a; }
+      #ov-body .past-head { margin: 0 0 4px; font: 700 16px "Balsamiq Sans", sans-serif; color: #7a6248; }
+      #ov-body .past { margin: 0 0 10px; font-size: 17px; }
+      #ov-body .past li { margin: 2px 0; }
+      @media (orientation: portrait) {
+        #ov-body .path { flex-direction: column; gap: 8px; margin-top: 8px; }
+        #ov-body .path li { display: flex; align-items: center; gap: 14px; text-align: left; }
+        #ov-body .path li::before { top: calc(-50% - 4px); left: 25px; width: 8px; height: calc(100% + 8px); }
+        #ov-body .path li.next::before { top: calc(-50% - 4px); left: 26px; width: 0; height: calc(100% + 8px); border-top: 0; border-left: 6px dashed #b89f74; }
+        .path .pic { flex: none; margin: 0; width: 58px; height: 58px; border-width: 5px; }
+        .path li.here .pic { box-shadow: 0 0 0 5px #ffd76a; }
+        .path .here-tag { margin-top: 2px; }
+        #ov-body .past-head { font-size: 14px; }
+        #ov-body .past li:nth-last-child(n + 3) { display: none; } /* на телефоне места мало: только две последние жизни */
+        .path .name { margin-top: 0; font-size: 20px; }
+        .path .age { font-size: 15px; }
+        .path .marks { justify-content: flex-start; }
+      }
+      /* рамка из рисованного листа и прибора (переменные задаёт src/main.ts, если картинки есть) */
+      body.art-sheet #ov-panel:not(.sys) { background: none; box-shadow: none; border-style: solid; border-color: transparent; border-width: 26px 30px 34px; padding: 4px 8px;
+        border-image: var(--sheet-img) var(--sheet-slice) fill / var(--sheet-w) / 0 stretch; filter: drop-shadow(0 12px 0 rgba(0, 0, 0, 0.45)); }
+      body.art-sys #ov-panel.sys { background: none; box-shadow: none; border-style: solid; border-color: transparent; border-width: 34px 40px; padding: 4px 8px;
+        border-image: var(--sys-img) var(--sys-slice) fill / var(--sys-w) / 0 stretch; filter: drop-shadow(0 12px 0 rgba(0, 0, 0, 0.45)); }
+      /* «Личное дело» и «Итог жизни»: раскрытая папка на столе (картинки задаёт src/main.ts, если они есть) */
+      body.art-desk #overlay.desk { background: var(--desk-img) center / cover no-repeat; }
+      @media (orientation: landscape) {
+        body.art-folder #ov-panel.dossier { --pw: min(1240px, 94vw, calc(90vh * 1.311)); width: var(--pw); max-width: none; max-height: none; aspect-ratio: 1100 / 839;
+          box-sizing: border-box; padding: calc(var(--pw) * 0.165) calc(var(--pw) * 0.075) calc(var(--pw) * 0.055); display: flex; flex-direction: column; overflow: hidden;
+          background: var(--folder-img) center / 100% 100% no-repeat; border: 0; border-image: none; box-shadow: none; filter: drop-shadow(0 14px 0 rgba(0, 0, 0, 0.45)); }
+        body.art-folder #ov-panel.dossier #ov-title { margin-bottom: 4px; }
+        body.art-folder #ov-panel.dossier #ov-body { flex: 1; min-height: 0; overflow: auto; column-count: 2; column-gap: 10%; column-fill: auto; }
+        body.art-folder #ov-panel.dossier #ov-body li, body.art-folder #ov-panel.dossier #ov-body p { break-inside: avoid; }
+        body.art-folder #ov-panel.dossier #ov-btn { align-self: flex-end; width: 40%; margin-top: 8px; }
+      }
+      /* холодный «казённый» вид: Небесная HR, список исправлений */
+      #ov-panel.sys { background: #0f2236; color: #dff7f4; border: 4px solid #3fd6c8; box-shadow: 0 0 0 7px rgba(63, 214, 200, 0.22), 0 0 0 14px rgba(63, 214, 200, 0.12); font: 18px/1.55 "PT Mono", Menlo, monospace; }
+      #ov-panel.sys #ov-title { font: 400 26px/1.2 "PT Mono", Menlo, monospace; color: #3fd6c8; }
+      #ov-panel.sys #ov-btn { font: 400 20px "PT Mono", Menlo, monospace; background: #3fd6c8; color: #0f2236; border: 0; }
+      #ov-panel.sys #ov-btn:hover { background: #7be6dc; }
+    </style>
+  </head>
+  <body>
+    <div id="game"></div>
+    <div id="hint" hidden>Поверни телефон стоймя: так буквы крупнее</div>
+    <div id="overlay" hidden>
+      <div id="ov-panel">
+        <h1 id="ov-title"></h1>
+        <div id="ov-body"></div>
+        <button id="ov-btn" type="button">Дальше</button>
+        <div id="ov-more"></div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

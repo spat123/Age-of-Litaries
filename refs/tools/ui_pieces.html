@@ -1,0 +1,75 @@
+<!doctype html>
+<!-- Наброски вещей интерфейса по одной, на белом фоне: опоры на форму для генератора картинок.
+     Открыть одну вещь: ?p=sheet (card, shelf, badge, board, buttons, plate_ribbon, note, system, result, stamps, icons).
+     Снять все в файлы: sh refs/tools/make_ui_refs.sh -->
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Сэр Баг — наброски вещей интерфейса</title>
+<style>
+:root{--ink:#2a1a10;--paper:#f9ebc8;--paper2:#ecd6a2;--wood:#c07e44;--wood2:#8c5127;--dwood:#5e3719;--dwood2:#452610;--red:#c9462f;--green:#46a052;--green2:#2f6b3a}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#fff}
+.stage{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:70px;background:#fff}
+.stage.on{display:flex}
+.o{border:14px solid var(--ink);position:relative}
+/* лист с текстом и лист исхода */
+.sheet{width:1700px;height:520px;border-radius:40px;background:var(--paper);box-shadow:inset 0 -24px 0 var(--paper2)}
+.result{width:1250px;height:880px;border-radius:26px;background:var(--paper);box-shadow:inset 0 -26px 0 var(--paper2)}
+.seal{position:absolute;right:70px;top:-60px;width:210px;height:210px;border-radius:50%;background:var(--red);border:14px solid var(--ink);box-shadow:inset -18px -18px 0 #8f2a1b}
+/* карточка */
+.card{width:780px;height:1040px;border-radius:64px;background:var(--paper);box-shadow:inset 0 -34px 0 var(--paper2)}
+.card .win{position:absolute;left:30px;right:30px;top:30px;height:560px;border-radius:36px;border:12px solid var(--ink);background:#ffd98a}
+/* полка */
+.shelf{width:100%;height:300px;background:var(--wood);border-top:16px solid var(--ink);border-bottom:16px solid var(--ink);box-shadow:inset 0 34px 0 #d99a5c,inset 0 -110px 0 var(--wood2)}
+/* пропуск */
+.badge{width:560px;height:1180px;border-radius:70px;background:var(--paper);box-shadow:inset 0 -30px 0 var(--paper2);margin-top:150px}
+.strap{position:absolute;top:-190px;width:46px;height:200px;background:var(--red);border:12px solid var(--ink)}
+.clip{position:absolute;left:50%;top:-50px;width:220px;height:84px;margin-left:-110px;border-radius:26px;background:#a9b6bf;border:14px solid var(--ink)}
+/* доска */
+.board{width:600px;height:1250px;border-radius:50px;background:var(--wood);box-shadow:inset 0 -40px 0 var(--wood2);overflow:hidden}
+.board i{position:absolute;top:0;bottom:0;width:8px;background:var(--wood2)}
+.nail{position:absolute;top:50px;width:44px;height:44px;border-radius:50%;background:var(--dwood);border:8px solid var(--ink)}
+/* кнопки, дощечка, лента */
+.btn{width:900px;height:230px;border-radius:56px}
+.btn.w{background:var(--wood);box-shadow:inset 0 -34px 0 var(--wood2)}
+.btn.g{background:var(--green);box-shadow:inset 0 -34px 0 var(--green2)}
+.plate{width:700px;height:200px;border-radius:44px;background:var(--dwood);box-shadow:inset 0 -28px 0 var(--dwood2)}
+.ribbon{width:980px;height:210px}
+/* записка */
+.note{width:760px;height:760px;background:#fff6a8;border-radius:10px}
+.pin{position:absolute;left:50%;top:-50px;width:96px;height:96px;margin-left:-48px;border-radius:50%;background:var(--red);border:14px solid var(--ink)}
+/* прибор «системы» */
+.sys{width:1750px;height:600px;border-radius:60px;background:#24384a}
+.sys .scr{position:absolute;inset:38px;border-radius:26px;background:#0f2236;border:10px solid #3fd6c8;box-shadow:0 0 0 14px rgba(63,214,200,.22)}
+.sys b{position:absolute;width:26px;height:26px;border-radius:50%;background:#7f93a3;border:6px solid var(--ink)}
+/* штампы */
+.stamps{flex-direction:row!important;gap:90px!important}
+.st{width:400px;height:220px;border-radius:26px;border:16px solid;position:relative;transform:rotate(-4deg)}
+.st:after{content:"";position:absolute;inset:16px;border:6px solid;border-radius:12px;border-color:inherit}
+/* значки */
+.icons.on{display:grid;grid-template-columns:420px 420px;gap:120px;place-content:center}
+.icons img{width:420px;height:420px}
+</style>
+</head>
+<body>
+<div class="stage" data-p="sheet"><div class="o sheet"></div></div>
+<div class="stage" data-p="card"><div class="o card"><div class="win"></div></div></div>
+<div class="stage" data-p="shelf"><div class="shelf"></div></div>
+<div class="stage" data-p="badge"><div class="o badge"><div class="strap" style="left:150px"></div><div class="strap" style="right:150px"></div><div class="clip"></div></div></div>
+<div class="stage" data-p="board"><div class="o board"><i style="left:185px"></i><i style="left:385px"></i><div class="nail" style="left:50px"></div><div class="nail" style="right:50px"></div></div></div>
+<div class="stage" data-p="buttons"><div class="o btn w"></div><div class="o btn g"></div></div>
+<div class="stage" data-p="plate_ribbon"><div class="o plate"></div>
+ <svg class="ribbon" viewBox="-10 -10 1000 230"><path d="M0 0h980l-60 105 60 105H0l60-105z" fill="#c9462f" stroke="#2a1a10" stroke-width="14" stroke-linejoin="round"/><path d="M40 170h900" stroke="#8f2a1b" stroke-width="26"/></svg></div>
+<div class="stage" data-p="note"><div class="o note"><div class="pin"></div></div></div>
+<div class="stage" data-p="system"><div class="o sys"><div class="scr"></div><b style="left:8px;top:8px"></b><b style="right:8px;top:8px"></b><b style="left:8px;bottom:8px"></b><b style="right:8px;bottom:8px"></b></div></div>
+<div class="stage" data-p="result"><div class="o result"><div class="seal"></div></div></div>
+<div class="stage stamps" data-p="stamps"><div class="st" style="border-color:#2f6b3a"></div><div class="st" style="border-color:#6a4a2c;transform:rotate(3deg)"></div><div class="st" style="border-color:#8f2a1b"></div></div>
+<div class="stage icons" data-p="icons"><img src="../../web/assets/icons/body.png"><img src="../../web/assets/icons/mind.png"><img src="../../web/assets/icons/rep.png"><img src="../../web/assets/icons/gold.png"></div>
+<script>
+const p = new URLSearchParams(location.search).get("p") || "sheet";
+const el = document.querySelector('.stage[data-p="' + p + '"]');
+if (el) el.classList.add("on");
+</script>
+</body>
+</html>

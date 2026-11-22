@@ -1,0 +1,506 @@
+{
+ "g_coins": {
+  "cut": true,
+  "full": true,
+  "bg": "#e8731f",
+  "bgimg": "orange"
+ },
+ "g_cry": {
+  "cut": true,
+  "bg": "#7a3fb0",
+  "bottom": false,
+  "bgimg": "purple"
+ },
+ "g_eyes": {
+  "cut": true,
+  "full": true,
+  "bg": "#e8731f",
+  "bgimg": "orange"
+ },
+ "g_eyes_shut": {
+  "cut": true,
+  "full": true,
+  "bg": "#e8731f",
+  "bgimg": "orange"
+ },
+ "g_fist": {
+  "cut": true,
+  "bg": "#d0452f",
+  "bottom": true,
+  "bgimg": "red"
+ },
+ "g_hand_take": {
+  "cut": true,
+  "full": true,
+  "bg": "#1f8a8a",
+  "bgimg": "teal"
+ },
+ "g_hug": {
+  "cut": true,
+  "full": true,
+  "bg": "#e04a9a",
+  "bgimg": "pink"
+ },
+ "g_mouth": {
+  "cut": true,
+  "full": true,
+  "bg": "#e04a9a",
+  "bgimg": "pink"
+ },
+ "g_point": {
+  "cut": true,
+  "full": true,
+  "bg": "#e8b21f",
+  "bgimg": "yellow"
+ },
+ "g_pray": {
+  "cut": true,
+  "bg": "#d6a12e",
+  "bottom": true,
+  "bgimg": "yellow"
+ },
+ "g_run": {
+  "cut": true,
+  "bg": "#3aa0d8",
+  "bottom": false,
+  "bgimg": "blue"
+ },
+ "g_shout": {
+  "cut": true,
+  "full": true,
+  "bg": "#e8b21f",
+  "bgimg": "yellow"
+ },
+ "g_silence": {
+  "cut": true,
+  "full": true,
+  "bg": "#1f8a8a",
+  "bgimg": "teal"
+ },
+ "g_sing": {
+  "cut": true,
+  "bg": "#e0a23a",
+  "bottom": false,
+  "bgimg": "yellow"
+ },
+ "g_sit": {
+  "cut": true,
+  "full": true,
+  "bg": "#e8b21f",
+  "bgimg": "yellow"
+ },
+ "g_sleep": {
+  "cut": true,
+  "bg": "#2b3f8f",
+  "bottom": false,
+  "bgimg": "blue"
+ },
+ "g_tear": {
+  "cut": true,
+  "bg": "#e8b21f",
+  "bottom": false,
+  "bgimg": "yellow"
+ },
+ "g_tongue": {
+  "cut": true,
+  "full": true,
+  "bg": "#3aa63a",
+  "bgimg": "green"
+ },
+ "g_walk_by": {
+  "cut": true,
+  "full": true,
+  "bg": "#e8731f",
+  "bgimg": "orange"
+ },
+ "g_write": {
+  "cut": true,
+  "bg": "#b5523a",
+  "bottom": false,
+  "bgimg": "red"
+ },
+ "o_barn": {
+  "cut": true,
+  "bg": "#4f86c8",
+  "bottom": false,
+  "bgimg": "blue"
+ },
+ "o_battle_pass": {
+  "cut": true,
+  "bg": "#d08a24",
+  "bottom": false,
+  "bgimg": "orange"
+ },
+ "o_beetle": {
+  "cut": true,
+  "bg": "#e8b21f",
+  "bottom": false,
+  "bgimg": "yellow"
+ },
+ "o_bellows": {
+  "cut": true,
+  "bg": "#d23a2e",
+  "bottom": false,
+  "bgimg": "red"
+ },
+ "o_birch_letter": {
+  "cut": true,
+  "bg": "#c0504d",
+  "bottom": false,
+  "bgimg": "red"
+ },
+ "o_birds": {
+  "cut": true,
+  "full": true,
+  "bg": "#e04a9a",
+  "bgimg": "pink"
+ },
+ "o_cake": {
+  "cut": true,
+  "bg": "#3aa63a",
+  "bottom": false,
+  "bgimg": "green"
+ },
+ "o_candy": {
+  "cut": true,
+  "bg": "#1f8a8a",
+  "bottom": false,
+  "bgimg": "teal"
+ },
+ "o_church_book": {
+  "cut": true,
+  "bg": "#5a3f8f",
+  "bottom": false,
+  "bgimg": "purple"
+ },
+ "o_closet": {
+  "cut": true,
+  "bg": "#7a5a3a",
+  "bottom": false,
+  "bgimg": "red"
+ },
+ "o_coffee": {
+  "cut": true,
+  "bg": "#e8731f",
+  "bottom": false,
+  "bgimg": "orange"
+ },
+ "o_coin_splash": {
+  "cut": true,
+  "bg": "#2f5fd0",
+  "bottom": false,
+  "bgimg": "blue"
+ },
+ "o_contract": {
+  "cut": true,
+  "bg": "#b83a3a",
+  "bottom": false,
+  "bgimg": "red"
+ },
+ "o_diploma": {
+  "cut": true,
+  "bg": "#e8731f",
+  "bottom": false,
+  "bgimg": "orange"
+ },
+ "o_dragon_hoard": {
+  "cut": true,
+  "bg": "#9a3a3a",
+  "bottom": false,
+  "bgimg": "red"
+ },
+ "o_empty_book": {
+  "cut": true,
+  "bg": "#2f6f9a",
+  "bottom": false,
+  "bgimg": "teal"
+ },
+ "o_fence": {
+  "cut": true,
+  "bg": "#3aa63a",
+  "bottom": false,
+  "bgimg": "green"
+ },
+ "o_foil_hat": {
+  "cut": true,
+  "full": true,
+  "bg": "#2f8f5b",
+  "bgimg": "green"
+ },
+ "o_gate_knock": {
+  "cut": true,
+  "bg": "#e8731f",
+  "bottom": false,
+  "bgimg": "orange"
+ },
+ "o_goblin_box": {
+  "cut": true,
+  "bg": "#1f8a8a",
+  "bottom": false,
+  "bgimg": "teal"
+ },
+ "o_goose": {
+  "cut": true,
+  "bg": "#3a86c8",
+  "bottom": false,
+  "bgimg": "blue"
+ },
+ "o_guild_mages": {
+  "cut": true,
+  "bg": "#4b2f80",
+  "bottom": false,
+  "bgimg": "purple"
+ },
+ "o_guild_thieves": {
+  "cut": true,
+  "bg": "#3aa63a",
+  "bottom": false,
+  "bgimg": "green"
+ },
+ "o_guild_warriors": {
+  "cut": true,
+  "bg": "#2f5fd0",
+  "bottom": false,
+  "bgimg": "blue"
+ },
+ "o_helmet_stone": {
+  "cut": true,
+  "bg": "#6f9a3a",
+  "bottom": false,
+  "bgimg": "green"
+ },
+ "o_horse": {
+  "cut": true,
+  "bg": "#3aa63a",
+  "bottom": false,
+  "bgimg": "green"
+ },
+ "o_jam": {
+  "cut": true,
+  "bg": "#e8b21f",
+  "bottom": false,
+  "bgimg": "yellow"
+ },
+ "o_knight": {
+  "cut": true,
+  "bg": "#e8b21f",
+  "bottom": false,
+  "bgimg": "yellow"
+ },
+ "o_kvass": {
+  "cut": true,
+  "bg": "#7a3fb0",
+  "bottom": false,
+  "bgimg": "purple"
+ },
+ "o_letter": {
+  "cut": true,
+  "bg": "#3f9a6e",
+  "bottom": false,
+  "bgimg": "teal"
+ },
+ "o_lute": {
+  "cut": true,
+  "bg": "#7a3fb0",
+  "bottom": false,
+  "bgimg": "purple"
+ },
+ "o_mud_castle": {
+  "cut": true,
+  "bg": "#e04a9a",
+  "bottom": false,
+  "bgimg": "pink"
+ },
+ "o_nettle": {
+  "cut": true,
+  "bg": "#1f8a8a",
+  "bottom": false,
+  "bgimg": "teal"
+ },
+ "o_pacifier": {
+  "cut": true,
+  "bg": "#5ab0c8",
+  "bottom": false,
+  "bgimg": "blue"
+ },
+ "o_pig": {
+  "cut": true,
+  "bg": "#e0732e",
+  "bottom": false,
+  "bgimg": "orange"
+ },
+ "o_pitchfork": {
+  "cut": true,
+  "bg": "#e04a9a",
+  "bottom": false,
+  "bgimg": "pink"
+ },
+ "o_plate": {
+  "cut": true,
+  "bg": "#2f5fd0",
+  "bottom": false,
+  "bgimg": "blue"
+ },
+ "o_portraits": {
+  "cut": true,
+  "bg": "#e04a9a",
+  "bottom": true,
+  "bgimg": "pink"
+ },
+ "o_potato_game": {
+  "cut": true,
+  "bg": "#7a3fb0",
+  "bottom": false,
+  "bgimg": "purple"
+ },
+ "o_potion": {
+  "cut": true,
+  "bg": "#e04a9a",
+  "bottom": false,
+  "bgimg": "pink"
+ },
+ "o_puddle": {
+  "cut": true,
+  "bg": "#e8731f",
+  "bottom": false,
+  "bgimg": "orange"
+ },
+ "o_purse": {
+  "cut": true,
+  "bg": "#2f7f6f",
+  "bottom": false,
+  "bgimg": "teal"
+ },
+ "o_quill_blot": {
+  "cut": true,
+  "bg": "#c98a2e",
+  "bottom": false,
+  "bgimg": "orange"
+ },
+ "o_remembered": {
+  "cut": true,
+  "bg": "#e04a9a",
+  "bottom": false,
+  "bgimg": "pink"
+ },
+ "o_sack": {
+  "cut": true,
+  "bg": "#2f5fd0",
+  "bottom": false,
+  "bgimg": "blue"
+ },
+ "o_salt_turnip": {
+  "cut": true,
+  "bg": "#3a7ab0",
+  "bottom": false,
+  "bgimg": "blue"
+ },
+ "o_sand": {
+  "cut": true,
+  "full": true,
+  "bg": "#3a6fb0",
+  "bgimg": "blue"
+ },
+ "o_scar": {
+  "cut": true,
+  "bg": "#3aa63a",
+  "bottom": false,
+  "bgimg": "green"
+ },
+ "o_scroll_pass": {
+  "cut": true,
+  "bg": "#8a3a9a",
+  "bottom": false,
+  "bgimg": "purple"
+ },
+ "o_scroll_speech": {
+  "cut": true,
+  "bg": "#7a4fb0",
+  "bottom": false,
+  "bgimg": "purple"
+ },
+ "o_shovel": {
+  "cut": true,
+  "bg": "#4f9a5a",
+  "bottom": false,
+  "bgimg": "green"
+ },
+ "o_shovels": {
+  "cut": true,
+  "bg": "#7a3fb0",
+  "bottom": false,
+  "bgimg": "purple"
+ },
+ "o_signpost": {
+  "cut": true,
+  "bg": "#e04a9a",
+  "bottom": false,
+  "bgimg": "pink"
+ },
+ "o_slate": {
+  "cut": true,
+  "bg": "#3f8f7a",
+  "bottom": false,
+  "bgimg": "teal"
+ },
+ "o_smoothie_cup": {
+  "cut": true,
+  "bg": "#3aa63a",
+  "bottom": false,
+  "bgimg": "green"
+ },
+ "o_socks": {
+  "cut": true,
+  "bg": "#1f8a8a",
+  "bottom": false,
+  "bgimg": "teal"
+ },
+ "o_stick": {
+  "cut": true,
+  "bg": "#4f9a3a",
+  "bottom": false,
+  "bgimg": "green"
+ },
+ "o_tent_gold": {
+  "cut": true,
+  "bg": "#d23a2e",
+  "bottom": false,
+  "bgimg": "red"
+ },
+ "o_tin_armor": {
+  "cut": true,
+  "full": true,
+  "bg": "#8a3a3a",
+  "bgimg": "red"
+ },
+ "o_tooth": {
+  "cut": true,
+  "bg": "#d0607a",
+  "bottom": false,
+  "bgimg": "pink"
+ },
+ "o_twig": {
+  "cut": true,
+  "bg": "#e8b21f",
+  "bottom": false,
+  "bgimg": "yellow"
+ },
+ "o_well": {
+  "cut": true,
+  "bg": "#e04a9a",
+  "bottom": false,
+  "bgimg": "pink"
+ },
+ "o_wooden_phone": {
+  "cut": true,
+  "bg": "#6a45a8",
+  "bottom": false,
+  "bgimg": "purple"
+ },
+ "o_wooden_sword": {
+  "cut": true,
+  "bg": "#c8442f",
+  "bottom": false,
+  "bgimg": "red"
+ }
+}
