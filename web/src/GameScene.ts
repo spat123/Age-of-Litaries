@@ -5,6 +5,7 @@ import Phaser from "phaser";
 import { D, STAT, SPEAK, TAGS, StatKey } from "./data";
 import { Life, IO, Ctx, LogLine, Tick, Save, Meta, run, checkSave } from "./rules";
 import { BG_FALLBACK, PLACEHOLDER, TEX, loadTextures } from "./assets";
+import { lifeStamp } from "./overlay";
 // где на каждом портрете голова: квадрат [x, y, сторона] в точках картинки (готовит web/tools/cut_faces.py)
 // какие рисунки во всё окно вырезаны без фона и какой цвет фона с лучами под ними (готовит web/tools/prepare_card_full.py)
 const CUT: Record<string, { cut: boolean; bg: string; bottom?: boolean; full?: boolean; bgimg?: string | null }> =
@@ -47,6 +48,10 @@ const HUD_ORDER: StatKey[] = ["body", "mind", "rep", "gold"];
 // ободок значка показателя: у каждого свой цвет, по длине ободка видно, сколько из десяти
 const RIM: Record<StatKey, number> = { body: 0xe8483f, mind: 0xf183c4, rep: 0xa5d04a, gold: 0xffc63a };
 // ряд показателей — посередине вверху (решение автора); слева вверху — только для пробы, адрес с ?stats=left
+// вариант эффекта «системы» (автор: «помехи не очень, есть ещё варианты?»): a — прорисовка сканлинией, b — текст
+// печатается как в консоли, c — текст на миг двоится цветами; выбрано ab — оба сразу (автор: «А и Б можно делать»);
+// для пробы — адрес с ?sysfx=a|b|c|ab
+const SYS_FX = (typeof location !== "undefined" && new URLSearchParams(location.search).get("sysfx")) || "ab";
 const STATS_LEFT = typeof location !== "undefined" && new URLSearchParams(location.search).get("stats") === "left";
 const SAVE_KEY = "sirbug.save.v1"; // сохранение лежит в памяти браузера
 const META_KEY = "sirbug.meta.v1"; // что игрок видел за все жизни; «Начать заново» это не стирает
@@ -67,6 +72,8 @@ export class GameScene extends Phaser.Scene {
   panel!: Box;
   faceBox!: Box;
   sysFrame: Phaser.GameObjects.Image | null = null;
+  sysOn = false;
+  glitchTimer: Phaser.Time.TimerEvent | null = null;
   cards!: Box;
   cardFx!: Phaser.GameObjects.Container;
   shadeImg?: Phaser.GameObjects.Image;
@@ -98,7 +105,11 @@ export class GameScene extends Phaser.Scene {
         verdict: (L, ctx, ticks, name, key, text, log) => this.verdict(L, ctx, ticks, name, key, text, log),
         page: (L, title, html, label, system) => {
           if (L) this.drawHud(L, null);
-          return showPage(title, html, label, system, title.startsWith("Итог жизни"));
+          const end = title.startsWith("Итог жизни");
+          const p = showPage(title, html, label, system, end);
+          // печать на папке «Итог жизни» (Р36): опускается с ударом, папка вздрагивает
+          if (end) lifeStamp(html.includes("концовка «") ? "Жизнь прожита" : "Дело закрыто");
+          return p;
         },
         chapter: (L, ch) => {
           if (ch.id === "ch0") return Promise.resolve(); // сборка мира идёт без ленты: игрок ещё ничего не знает
@@ -133,6 +144,7 @@ export class GameScene extends Phaser.Scene {
           return m;
         },
       };
+      (window as any).sirbugIO = io; // для проверок скриптами (web/tools/shot.mjs): вызвать страницу, вердикт и т. п.
       this.start(io);
     });
   }
@@ -375,17 +387,24 @@ export class GameScene extends Phaser.Scene {
       // полупрозрачного сияния вокруг кружка больше нет (автор: «убери вторую рамку прозрачную у иконок»)
       g.fillStyle(0x2a1a10, 0.88).fillCircle(0, 0, disc);
       g.lineStyle(th, col, 0.28).strokeCircle(0, 0, R); // незаполненная часть кольца — бледная, в цвет значка
-      const part = bar ? Math.max(0, Math.min(1, v / 10)) : 1;
-      if (part > 0) {
-        g.lineStyle(th, col, 1).beginPath();
-        g.arc(0, 0, R, -Math.PI / 2, -Math.PI / 2 + part * Math.PI * 2, false);
-        g.strokePath();
-      }
+      // заполненная часть — отдельно: при изменении она плавно доезжает от старого значения до нового
+      const arc = this.add.graphics();
+      const drawArc = (val: number) => {
+        const part = bar ? Math.max(0, Math.min(1, val / 10)) : 1;
+        arc.clear();
+        if (part > 0) {
+          arc.lineStyle(th, col, 1).beginPath();
+          arc.arc(0, 0, R, -Math.PI / 2, -Math.PI / 2 + part * Math.PI * 2, false);
+          arc.strokePath();
+        }
+      };
+      drawArc(v);
       const color = key === "gold" ? C.gold : low ? 0xffb9a8 : C.white;
       const num = txt(this, disc + 8, 0, String(v), Math.round(R * 1.25), color).setOrigin(0, 0.5)
         .setStroke(hex(C.ink), Math.max(6, Math.round(R * 0.26)));
-      c.add([g, this.statIcon(key, 0, 0, R * 1.42), num]);
-      return { key, v, c, w: disc * 2 + 8 + num.width };
+      const icon = this.statIcon(key, 0, 0, R * 1.42) as Phaser.GameObjects.Image;
+      c.add([g, arc, icon, num]);
+      return { key, v, c, w: disc * 2 + 8 + num.width, drawArc, num, icon, col, color };
     });
     const total = items.reduce((a, it) => a + it.w, 0) + gap * (items.length - 1);
     const left = center ? x - total / 2 : x;
@@ -396,47 +415,357 @@ export class GameScene extends Phaser.Scene {
       this.hud.add(it.c);
       cx += it.w + gap;
       const d = this.shown ? it.v - this.shown[it.key] : 0;
-      if (animate && d) {
-        const pop = txt(this, px, y + disc + 4, sign(d), Math.round(R * 1.3), d > 0 ? 0x8be06a : 0xff8a70).setOrigin(0.5, 0).setStroke(hex(C.ink), 9);
-        this.hud.add(pop);
-        this.tweens.add({ targets: pop, y: pop.y + 50, alpha: 0, duration: 1600, ease: "Sine.Out", onComplete: () => pop.destroy() });
-        this.tweens.add({ targets: it.c, scale: 1.15, duration: 110, yoyo: true });
-      }
+      if (animate && d) this.statFx(it, px, y, disc, R, d, this.shown![it.key]);
     }
     this.shown = { ...L.stats };
     return { left, right: left + total, bottom: y + disc + 7 };
   }
-  /** Свет позади особой карточки: тёплое сияние, медленно крутятся лучи, вспыхивают искры.
-   *  Временный: настоящие эффекты сделаем потом кодом или готовым VFX (решение П34, список мест — Р36 в decisions.md). */
-  specialFx(w: number, h: number) {
-    const fx = this.add.container(0, 0);
-    const halo = this.add.graphics();
-    for (let i = 6; i >= 1; i--) halo.fillStyle(0xffc94a, 0.1).fillRoundedRect(-w / 2 - i * 9, -h / 2 - i * 9, w + i * 18, h + i * 18, 26 + i * 9);
-    const rays = this.add.graphics().setPosition(0, -h * 0.12).setBlendMode(Phaser.BlendModes.ADD);
-    const R = Math.max(w, h) * 0.9, n = 18;
+  /** Получена уникальная карточка: её ячейка в столбике прячется, в центре со вспышкой и лучами появляется
+   *  крупный значок с названием, держится и улетает в свою ячейку, ячейка вспыхивает. */
+  giveFx(id: string, delay: number) {
+    const chip = (this.hand.list as Phaser.GameObjects.Container[]).find((c) => c.getData("card") === id);
+    const cd = D.cards[id];
+    if (!chip || !cd || !this.textures.exists("cico_" + cd.art)) return;
+    this.fxTextures();
+    chip.setAlpha(0);
+    const tx = chip.x + this.hand.x, ty = chip.y + this.hand.y;
+    this.time.delayedCall(delay, () => {
+      const cx = W / 2, cy = 330, S = 200;
+      // мягкий свет вместо полосатых лучей (автор: «круг полосатый не очень — сделать нормальный эффект»)
+      const glow = this.add.image(cx, cy, "fx_glow").setDepth(54).setBlendMode(Phaser.BlendModes.ADD)
+        .setTint(0xffb84a).setScale(0.2).setAlpha(0);
+      this.tweens.add({ targets: glow, scale: 4, alpha: 1, duration: 260, ease: "Cubic.Out" });
+      this.tweens.add({ targets: glow, scale: 3.4, alpha: 0.8, delay: 260, duration: 700, yoyo: true, ease: "Sine.InOut" });
+      // взрыв искр
+      const burst = this.add.particles(cx, cy, "fx_spark", {
+        speed: { min: 180, max: 520 }, angle: { min: 0, max: 360 }, scale: { start: 0.9, end: 0 },
+        lifespan: { min: 600, max: 1100 }, gravityY: 160, rotate: { min: 0, max: 360 },
+        tint: [0xffffff, 0xfff3c4, 0xffd66e, 0xffb347], blendMode: "ADD", emitting: false,
+      }).setDepth(54); // искры за значком, чтобы не закрывали рисунок
+      burst.explode(46);
+      // тихие искры вокруг, пока значок висит
+      const twinkle = this.add.particles(cx, cy, "fx_spark", {
+        speed: { min: 10, max: 50 }, scale: { start: 0.55, end: 0 }, lifespan: 900, frequency: 45,
+        emitZone: { type: "random", source: new Phaser.Geom.Circle(0, 0, 150) } as any,
+        tint: [0xffffff, 0xffe08a], blendMode: "ADD",
+      }).setDepth(54);
+      const frame = this.add.graphics();
+      frame.fillStyle(0x3a2616, 1).fillRoundedRect(-S / 2 - 10, -S / 2 - 10, S + 20, S + 20, 30)
+        .lineStyle(8, C.ink, 1).strokeRoundedRect(-S / 2 - 10, -S / 2 - 10, S + 20, S + 20, 30);
+      const ico = this.add.image(0, 0, "cico_" + cd.art).setDisplaySize(S, S);
+      const name = txt(this, 0, S / 2 + 40, cd.name, 30, C.cream, { wrap: 520, align: "center" }).setOrigin(0.5, 0).setStroke(hex(C.ink), 8);
+      const head = txt(this, 0, -S / 2 - 56, "НОВАЯ КАРТОЧКА", 26, C.gold).setOrigin(0.5).setStroke(hex(C.ink), 8);
+      const fx = this.add.container(cx, cy, [frame, ico, name, head]).setDepth(55).setScale(0.2).setAlpha(0);
+      this.tweens.add({ targets: fx, scale: 1, alpha: 1, duration: 300, ease: "Back.Out" });
+      this.time.delayedCall(1000, () => {
+        twinkle.stop();
+        this.tweens.add({ targets: [name, head], alpha: 0, duration: 150 });
+        this.tweens.add({ targets: glow, alpha: 0, scale: 1, duration: 300 });
+        // шлейф искр за летящим значком
+        const trail = this.add.particles(0, 0, "fx_spark", {
+          speed: { min: 5, max: 40 }, scale: { start: 0.6, end: 0 }, lifespan: 500, frequency: 16,
+          tint: [0xffffff, 0xffd66e], blendMode: "ADD",
+        }).setDepth(54);
+        trail.startFollow(fx);
+        this.tweens.add({ targets: fx, x: tx, y: ty, scale: 88 / (S + 20), duration: 460, ease: "Cubic.In",
+          onComplete: () => {
+            fx.destroy();
+            trail.stop();
+            chip.setAlpha(1);
+            const g2 = this.add.image(tx, ty, "fx_glow").setDepth(54).setBlendMode(Phaser.BlendModes.ADD).setTint(0xffe08a).setScale(0.4);
+            this.tweens.add({ targets: g2, scale: 1.3, alpha: 0, duration: 450, ease: "Cubic.Out", onComplete: () => g2.destroy() });
+            const pop = this.add.particles(tx, ty, "fx_spark", {
+              speed: { min: 80, max: 220 }, scale: { start: 0.6, end: 0 }, lifespan: 500, tint: [0xffffff, 0xffd66e],
+              blendMode: "ADD", emitting: false,
+            }).setDepth(56);
+            pop.explode(18);
+            this.tweens.add({ targets: chip, scale: 1.18, duration: 120, yoyo: true });
+            this.time.delayedCall(1300, () => { pop.destroy(); trail.destroy(); burst.destroy(); twinkle.destroy(); glow.destroy(); });
+          } });
+      });
+    });
+  }
+  /** Текстуры для эффектов: мягкое круглое свечение и искра-звёздочка с ореолом. Создаются один раз. */
+  fxTextures() {
+    if (!this.textures.exists("fx_glow")) {
+      const S = 256, t = this.textures.createCanvas("fx_glow", S, S)!, c = t.getContext();
+      const gr = c.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+      gr.addColorStop(0, "rgba(255,255,255,1)");
+      gr.addColorStop(0.25, "rgba(255,255,255,0.55)");
+      gr.addColorStop(0.6, "rgba(255,255,255,0.15)");
+      gr.addColorStop(1, "rgba(255,255,255,0)");
+      c.fillStyle = gr;
+      c.fillRect(0, 0, S, S);
+      t.refresh();
+    }
+    if (!this.textures.exists("fx_spark")) {
+      const S = 48, t = this.textures.createCanvas("fx_spark", S, S)!, c = t.getContext(), m = S / 2;
+      const gr = c.createRadialGradient(m, m, 0, m, m, m);
+      gr.addColorStop(0, "rgba(255,255,255,0.9)");
+      gr.addColorStop(0.3, "rgba(255,255,255,0.25)");
+      gr.addColorStop(1, "rgba(255,255,255,0)");
+      c.fillStyle = gr;
+      c.fillRect(0, 0, S, S);
+      c.fillStyle = "#fff";
+      c.beginPath();
+      const r = m * 0.95, q = m * 0.16;
+      c.moveTo(m, m - r); c.lineTo(m + q, m - q); c.lineTo(m + r, m); c.lineTo(m + q, m + q);
+      c.lineTo(m, m + r); c.lineTo(m - q, m + q); c.lineTo(m - r, m); c.lineTo(m - q, m - q);
+      c.closePath();
+      c.fill();
+      t.refresh();
+    }
+  }
+  /** Эффект окна «системы» — один из трёх вариантов (SYS_FX). Без полос по экрану и тряски. */
+  sysFx(back: Phaser.GameObjects.Container, items: Phaser.GameObjects.GameObject[], main: Phaser.GameObjects.Text, size: number) {
+    if (SYS_FX === "ab") {
+      // окно прорисовывается линией, а текст в нём тут же начинает печататься
+      this.sysType(main);
+      this.sysScan(back, items);
+    } else if (SYS_FX === "a") this.sysScan(back, items);
+    else if (SYS_FX === "c") {
+      this.sysSplit(main, 1, back);
+      const next = () => { this.glitchTimer = this.time.delayedCall(4000 + Math.random() * 3000, () => { this.sysSplit(main, 0.4); next(); }); };
+      next();
+    } else this.sysType(main);
+    void size;
+  }
+  /** a: окно прорисовывается — сверху вниз идёт бирюзовая линия, за ней проявляются окно и строки. */
+  sysScan(back: Phaser.GameObjects.Container, items: Phaser.GameObjects.GameObject[]) {
+    this.fxTextures();
+    const b = back.getBounds(), top = b.y, h = b.height;
+    back.setAlpha(0.15);
+    const its = items as any[];
+    its.forEach((o) => o.setAlpha(0));
+    const line = this.add.rectangle(b.centerX, top, b.width + 30, 3, C.sysLine).setBlendMode(Phaser.BlendModes.ADD);
+    const glow = this.add.image(b.centerX, top, "fx_glow").setTint(C.sysLine).setBlendMode(Phaser.BlendModes.ADD).setDisplaySize(b.width * 1.15, 70).setAlpha(0.8);
+    this.panel.add([glow, line]);
+    const p = { v: 0 };
+    this.tweens.add({ targets: p, v: 1, duration: 650, ease: "Sine.InOut",
+      onUpdate: () => {
+        const y = top + h * p.v;
+        line.setY(y); glow.setY(y);
+        back.setAlpha(0.15 + 0.85 * p.v);
+        for (const o of its) if (o.alpha === 0 && (o.y ?? 0) < y) this.tweens.add({ targets: o, alpha: 1, duration: 140 });
+        if (Math.random() < 0.5) {
+          const px = this.add.rectangle(b.x + Math.random() * b.width, y + (Math.random() - 0.5) * 8, 6, 6, C.sysLine).setBlendMode(Phaser.BlendModes.ADD);
+          this.panel.add(px);
+          this.tweens.add({ targets: px, alpha: 0, y: px.y - 14, duration: 380, onComplete: () => px.destroy() });
+        }
+      },
+      onComplete: () => { line.destroy(); glow.destroy(); back.setAlpha(1); its.forEach((o) => o.setAlpha(1)); } });
+  }
+  /** b: текст печатается как в консоли — впереди мелькают «битые» знаки, в конце мигает курсор. */
+  sysType(t: Phaser.GameObjects.Text) {
+    const lines = t.getWrappedText(t.text);
+    const full = lines.join("\n");
+    t.setWordWrapWidth(null as any);
+    const n = full.length, dur = Math.min(1400, 300 + n * 3), junk = "#%&@$*<>/01";
+    let i = 0;
+    t.setText("");
+    const step = Math.max(1, Math.ceil(n / (dur / 16)));
+    this.glitchTimer = this.time.addEvent({ delay: 16, loop: true, callback: () => {
+      i = Math.min(n, i + step);
+      let tail = "";
+      for (let k = 0; k < Math.min(3, n - i); k++) tail += full[i + k] === "\n" ? "" : junk[(Math.random() * junk.length) | 0];
+      t.setText(full.slice(0, i) + tail);
+      if (i >= n) {
+        this.glitchTimer?.remove();
+        let on = true;
+        this.glitchTimer = this.time.addEvent({ delay: 480, loop: true, callback: () => { on = !on; if (t.active) t.setText(full + (on ? " _" : "")); } });
+        t.setText(full + " _");
+      }
+    } });
+  }
+  /** c: текст на миг двоится бирюзовым и розовым и съезжается обратно; окно чуть мигает. */
+  sysSplit(t: Phaser.GameObjects.Text, power: number, back?: Phaser.GameObjects.Container) {
+    if (!t.active) return;
+    const st = t.style.toJSON() as any;
+    st.wordWrap = undefined; // копии — уже разбитым на строки текстом, иначе они уходят одной строкой за край
+    const wrapped = t.getWrappedText(t.text).join("\n");
+    for (const [col, dx] of [["#3fd6c8", -12], ["#ff4fd0", 12]] as [string, number][]) {
+      const g = this.add.text(t.x + dx * power, t.y + (dx > 0 ? 3 : -3) * power, wrapped, st).setColor(col)
+        .setWordWrapWidth(null as any).setLineSpacing(t.lineSpacing).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.9);
+      this.panel.add(g);
+      this.tweens.add({ targets: g, x: t.x, y: t.y, alpha: 0, duration: 480, ease: "Cubic.Out", onComplete: () => g.destroy() });
+    }
+    if (back) this.tweens.add({ targets: back, alpha: 0.6, duration: 60, yoyo: true, repeat: 1 });
+  }
+  /** Вспышка, когда выбранная карта переворачивается в лист итога: белый свет и пыль во все стороны. */
+  flipFlash(x: number, y: number) {
+    const f = this.add.graphics().setPosition(x, y).setBlendMode(Phaser.BlendModes.ADD).setDepth(45);
+    f.fillStyle(0xfff3c4, 0.9).fillRoundedRect(-60, -170, 120, 340, 30);
+    this.tweens.add({ targets: f, scaleX: 6, scaleY: 1.6, alpha: 0, duration: 380, ease: "Cubic.Out", onComplete: () => f.destroy() });
+    for (let i = 0; i < 14; i++) {
+      const p = this.add.graphics().setPosition(x, y).setDepth(45).setBlendMode(Phaser.BlendModes.ADD);
+      p.fillStyle(0xffe6a0, 1).fillCircle(0, 0, 3 + Math.random() * 4);
+      const a = Math.random() * Math.PI * 2, d = 160 + Math.random() * 220;
+      this.tweens.add({ targets: p, x: x + Math.cos(a) * d, y: y + Math.sin(a) * d * 0.6, alpha: 0, scale: 0.2,
+        duration: 500 + Math.random() * 300, ease: "Cubic.Out", onComplete: () => p.destroy() });
+    }
+  }
+  /** Эффект изменения показателя (Р36): кольцо и число доезжают до нового значения, значок подпрыгивает;
+   *  рост — вспышка и искры цвета значка, падение — красная вспышка, значок вздрагивает, осколки падают вниз. */
+  statFx(it: any, px: number, py: number, disc: number, R: number, d: number, from: number) {
+    const up = d > 0, tint = up ? it.col : 0xff4a3a;
+    // кольцо и число плавно доезжают
+    const cnt = { v: from };
+    this.tweens.add({ targets: cnt, v: it.v, duration: 650, ease: "Cubic.Out",
+      onUpdate: () => { it.drawArc(cnt.v); it.num.setText(String(Math.round(cnt.v))); } });
+    if (!up) {
+      it.num.setColor("#ff8a70");
+      this.time.delayedCall(700, () => it.num.setColor("#" + it.color.toString(16).padStart(6, "0")));
+    }
+    // вспышка-кольцо расходится
+    const flash = this.add.graphics().setPosition(px, py).setBlendMode(Phaser.BlendModes.ADD);
+    flash.lineStyle(6, tint, 1).strokeCircle(0, 0, disc);
+    flash.fillStyle(tint, 0.35).fillCircle(0, 0, disc);
+    this.hud.add(flash);
+    this.tweens.add({ targets: flash, scale: 1.9, alpha: 0, duration: 520, ease: "Cubic.Out", onComplete: () => flash.destroy() });
+    // значок: рост — прыжок, падение — дрожь
+    if (up) this.tweens.add({ targets: it.icon, scale: it.icon.scale * 1.35, duration: 160, yoyo: true, ease: "Back.Out" });
+    else this.tweens.add({ targets: it.c, x: px + 5, duration: 45, yoyo: true, repeat: 4, onComplete: () => it.c.setX(px) });
+    // искры (рост) или осколки (падение)
+    const n = up ? 10 : 7;
     for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2, da = Math.PI / n * 0.55;
-      rays.fillStyle(0xffe08a, i % 2 ? 0.16 : 0.3);
-      rays.fillTriangle(0, 0, Math.cos(a - da) * R, Math.sin(a - da) * R, Math.cos(a + da) * R, Math.sin(a + da) * R);
+      const s = this.add.graphics().setPosition(px, py);
+      if (up) {
+        const r = 3 + Math.random() * 4;
+        s.setBlendMode(Phaser.BlendModes.ADD).fillStyle(0xfff3c4, 1).fillCircle(0, 0, r).fillStyle(tint, 0.8).fillCircle(0, 0, r * 1.8);
+      } else s.fillStyle(0x7a1a10, 1).fillTriangle(-4, -3, 5, -2, 0, 5).lineStyle(2, C.ink, 1).strokeTriangle(-4, -3, 5, -2, 0, 5);
+      this.hud.add(s);
+      const a = up ? (i / n) * Math.PI * 2 : Math.PI * (0.15 + 0.7 * Math.random());
+      const dist = up ? disc + 18 + Math.random() * 22 : 30 + Math.random() * 40;
+      this.tweens.add({ targets: s, x: px + Math.cos(a) * dist, y: py + Math.sin(a) * dist + (up ? 0 : 30), alpha: 0,
+        angle: up ? 0 : 200, scale: up ? 0.3 : 1, duration: up ? 600 : 800, ease: up ? "Cubic.Out" : "Quad.In",
+        onComplete: () => s.destroy() });
     }
-    fx.add([rays, halo]);
+    // число изменения: выскакивает под значком и плавно уходит
+    const pop = txt(this, px, py + disc + 6, sign(d), Math.round(R * 1.3), up ? 0x8be06a : 0xff8a70).setOrigin(0.5, 0)
+      .setStroke(hex(C.ink), 9).setScale(0.3);
+    this.hud.add(pop);
+    this.tweens.add({ targets: pop, scale: 1, duration: 220, ease: "Back.Out" });
+    this.tweens.add({ targets: pop, y: pop.y + 46, alpha: 0, delay: 700, duration: 900, ease: "Sine.In", onComplete: () => pop.destroy() });
+  }
+  /** Тёмная накладка на карту (для затемнения соседних при наведении); создаётся один раз. */
+  cardDim(box: Box) {
+    let d = box.getData("dim") as Phaser.GameObjects.Graphics | undefined;
+    if (!d) {
+      const w = box.width, h = box.height;
+      d = this.add.graphics().fillStyle(0x140a04, 1).fillRoundedRect(-w / 2 + 6, -h / 2 + 6, w - 12, h - 12, 14).setAlpha(0);
+      box.add(d);
+      box.setData("dim", d);
+    }
+    return d;
+  }
+  /** Наведение на карту выбора (автор: «если бы эффект был по карточке — было бы круче»): карта поднимается,
+   *  по её рамке бегут два огонька с искристым хвостом, рамка светится, по картинке пробегает блик;
+   *  за картой мягкий свет; соседние карты темнеют. */
+  cardHover(box: Box, tg: any, x: number, y: number, fan: number, on: boolean, boxes: Box[]) {
+    this.fxTextures();
+    const w = box.width, h = box.height;
+    let hv = box.getData("hov") as Phaser.GameObjects.Image | undefined;
+    if (!hv) {
+      hv = this.add.image(0, 0, "fx_glow").setTint(0xffb040).setDisplaySize(w * 2.4, h * 1.85).setAlpha(0);
+      this.cardFx.add(hv);
+      box.setData("hov", hv);
+      box.once("destroy", () => hv!.destroy());
+    }
+    let edge = box.getData("edge") as Phaser.GameObjects.Container | undefined;
+    if (!edge) {
+      const fw = w - 10, fh = h - 10;
+      const line = this.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
+      line.lineStyle(6, 0xffd36a, 0.55).strokeRoundedRect(-fw / 2, -fh / 2, fw, fh, 16);
+      line.lineStyle(2, 0xfff6d8, 0.9).strokeRoundedRect(-fw / 2, -fh / 2, fw, fh, 16);
+      // блик по форме карты (автор: «полоса — чтоб была по форме карточки»): рисуется на холсте, обрезанном
+      // по скруглённой рамке, и пробегает наискось только внутри карты
+      const key = "sheen_" + Math.round(w) + "x" + Math.round(h) + "_" + Phaser.Math.RND.uuid().slice(0, 6);
+      const cv = this.textures.createCanvas(key, Math.round(w), Math.round(h))!;
+      const img = this.add.image(0, 0, key).setBlendMode(Phaser.BlendModes.ADD);
+      const draw = (u: number) => {
+        const c = cv.getContext(), W2 = cv.width, H2 = cv.height;
+        c.clearRect(0, 0, W2, H2);
+        c.save();
+        c.beginPath();
+        (c as any).roundRect(6, 6, W2 - 12, H2 - 12, 18);
+        c.clip();
+        // мягкая полоса без жёстких краёв: градиент поперёк наклонной полосы заливает всю карту
+        // (раньше полоса была четырёхугольником с резкими косыми краями и мелькала как молния)
+        const x0 = -W2 * 0.6 + u * W2 * 2.2, cy = H2 / 2, slope = H2 * 0.35;
+        const nx = H2, ny = 2 * slope, len = Math.hypot(nx, ny), half = 70;
+        const dx = (nx / len) * half, dy = (ny / len) * half;
+        const gr = c.createLinearGradient(x0 - dx, cy - dy, x0 + dx, cy + dy);
+        gr.addColorStop(0, "rgba(255,245,210,0)");
+        gr.addColorStop(0.5, "rgba(255,245,210,0.45)");
+        gr.addColorStop(1, "rgba(255,245,210,0)");
+        c.fillStyle = gr;
+        c.fillRect(0, 0, W2, H2);
+        c.restore();
+        cv.refresh();
+      };
+      draw(-1);
+      edge = this.add.container(0, 0, [line, img]).setAlpha(0);
+      edge.setData("sheen", draw);
+      box.add(edge);
+      box.setData("edge", edge);
+      box.once("destroy", () => this.textures.remove(key));
+    }
+    const sheen = edge.getData("sheen") as (u: number) => void;
+    this.tweens.killTweensOf([hv, edge]);
+    if (on) {
+      this.cards.bringToTop(box);
+      box.bringToTop(edge);
+      hv.setPosition(x, y - 30).setAngle(0);
+      this.tweens.add({ targets: hv, alpha: 0.9, duration: 140 });
+      this.tweens.add({ targets: edge, alpha: 1, duration: 140 });
+      this.tweens.add({ targets: tg, y: y - 30, scale: 1.07, angle: 0, duration: 200, ease: "Back.Out" });
+      const s = { u: 0 };
+      this.tweens.add({ targets: s, u: 1, duration: 520, ease: "Sine.InOut", onUpdate: () => sheen(s.u), onComplete: () => sheen(-1) });
+      // соседние карты темнеют (затемнение поверх карты, а не прозрачность — иначе сквозь них светит фон)
+      for (const o of boxes) if (o !== box && o.getData("open")) this.tweens.add({ targets: this.cardDim(o), alpha: 0.32, duration: 160 });
+      this.tweens.add({ targets: this.cardDim(box), alpha: 0, duration: 120 });
+    } else {
+      this.tweens.add({ targets: [hv, edge], alpha: 0, duration: 160 });
+      this.tweens.add({ targets: tg, y, scale: 1, angle: fan, duration: 160, ease: "Sine.Out" });
+      for (const o of boxes) if (o !== box && o.getData("open")) this.tweens.add({ targets: this.cardDim(o), alpha: 0, duration: 160 });
+    }
+  }
+  /** Свет позади особой карточки (Р36, автор: «нормальный эффект», без полосатых лучей): мягкое тёплое сияние
+   *  дышит за картой, вдоль рамки вверх поднимаются золотые искры, по углам изредка вспыхивают звёздочки. */
+  specialFx(w: number, h: number) {
+    this.fxTextures();
+    const fx = this.add.container(0, 0);
+    // обычное смешивание, чтобы сияние было видно и на светлом фоне (на светлом «сложение» почти пропадает)
+    const glow = this.add.image(0, 0, "fx_glow").setTint(0xffa020).setDisplaySize(w * 3.2, h * 2.5).setAlpha(1);
+    const glow2 = this.add.image(0, -h * 0.1, "fx_glow").setBlendMode(Phaser.BlendModes.ADD).setTint(0xfff0b0)
+      .setDisplaySize(w * 1.3, h * 1.1).setAlpha(0.5);
+    // искры поднимаются от краёв карты
+    // точка в случайном месте рамки (а не по порядку — иначе искры идут цепочкой)
+    const per = { getRandomPoint: (p: any) => {
+      const L = 2 * (w + h) * Math.random();
+      if (L < w) { p.x = -w / 2 + L; p.y = -h / 2 - 4; }
+      else if (L < w + h) { p.x = w / 2 + 4; p.y = -h / 2 + (L - w); }
+      else if (L < 2 * w + h) { p.x = w / 2 - (L - w - h); p.y = h / 2 + 4; }
+      else { p.x = -w / 2 - 4; p.y = h / 2 - (L - 2 * w - h); }
+      return p;
+    } };
+    const rise = this.add.particles(0, 0, "fx_spark", {
+      emitZone: { type: "random", source: per } as any,
+      speedY: { min: -70, max: -25 }, speedX: { min: -12, max: 12 }, scale: { start: 0.55, end: 0 },
+      lifespan: { min: 700, max: 1300 }, frequency: 70, alpha: { start: 1, end: 0 },
+      tint: [0xffffff, 0xffe08a, 0xffc04a], blendMode: "ADD",
+    });
+    // редкие крупные звёздочки на углах рамки
+    const corners = new Phaser.Geom.Rectangle(-w / 2, -h / 2, w, h);
+    const stars = this.add.particles(0, 0, "fx_spark", {
+      emitZone: { type: "edge", source: corners, quantity: 4, yoyo: false } as any,
+      scale: { start: 0, end: 1.3, ease: "Sine.Out" }, alpha: { start: 1, end: 0 }, lifespan: 600, frequency: 420,
+      rotate: { start: 0, end: 90 }, tint: 0xffffff, blendMode: "ADD",
+    });
+    fx.add([glow, glow2, rise, stars]);
     const tw: Phaser.Tweens.Tween[] = [];
-    tw.push(this.tweens.add({ targets: rays, angle: 360, duration: 26000, repeat: -1 }));
-    tw.push(this.tweens.add({ targets: halo, alpha: 0.55, duration: 900, yoyo: true, repeat: -1, ease: "Sine.InOut" }));
-    for (let i = 0; i < 8; i++) {
-      // искры по краю рамки
-      const side = i % 4, t = Math.random();
-      const x = side === 0 ? -w / 2 + t * w : side === 1 ? w / 2 + 6 : side === 2 ? -w / 2 + t * w : -w / 2 - 6;
-      const y = side === 0 ? -h / 2 - 6 : side === 1 ? -h / 2 + t * h : side === 2 ? h / 2 + 6 : -h / 2 + t * h;
-      const s = this.add.graphics().setPosition(x, y).setBlendMode(Phaser.BlendModes.ADD).setScale(0);
-      const r = 9 + Math.random() * 7;
-      const q = r * 0.28; // четырёхлучевая звёздочка из четырёх треугольников
-      s.fillStyle(0xfff3c4, 1).fillTriangle(0, -r, q, 0, -q, 0).fillTriangle(0, r, q, 0, -q, 0)
-        .fillTriangle(-r, 0, 0, -q, 0, q).fillTriangle(r, 0, 0, -q, 0, q);
-      fx.add(s);
-      tw.push(this.tweens.add({ targets: s, scale: 1, angle: 90, duration: 520, yoyo: true, repeat: -1, repeatDelay: 600 + Math.random() * 1400,
-        delay: Math.random() * 1800, ease: "Sine.Out" }));
-    }
+    tw.push(this.tweens.add({ targets: glow, alpha: 0.65, duration: 1100, yoyo: true, repeat: -1, ease: "Sine.InOut" }));
+    tw.push(this.tweens.add({ targets: glow2, scale: glow2.scale * 1.12, duration: 1300, yoyo: true, repeat: -1, ease: "Sine.InOut" }));
     fx.once("destroy", () => tw.forEach((t) => t.remove()));
     return fx;
   }
@@ -618,7 +947,11 @@ export class GameScene extends Phaser.Scene {
       const on = sys || ctx.scene.id === "glitch";
       this.tweens.killTweensOf(this.sysFrame);
       this.tweens.add({ targets: this.sysFrame, alpha: on ? 0.9 : 0, duration: on ? 500 : 250 });
+      this.sysOn = on;
     }
+    // эффект «системы» (Р36) — после сборки окна, см. sysFx
+    this.glitchTimer?.remove();
+    this.glitchTimer = null;
     // говорящий — аватаром в резной рамке рядом с окном диалога; у рассказчика аватара нет
     this.faceBox.removeAll(true);
     const who0 = ctx.scene.face || ctx.scene.speaker, face = "face_" + who0;
@@ -661,6 +994,7 @@ export class GameScene extends Phaser.Scene {
       parts.push(tt.setPosition(x0 + SHEET_W - 44 - tt.width / 2, SHEET_TOP - 4));
     }
     this.panel.add(parts);
+    if (sys) this.sysFx(back, items, main, size);
     this.panelBottom = bottom + 14;
     return this.panelBottom;
   }
@@ -814,15 +1148,10 @@ export class GameScene extends Phaser.Scene {
       if (!open) return;
       const z = this.add.zone(0, 0, cw, ch).setInteractive({ useHandCursor: true });
       box.add(z);
-      z.on("pointerover", () => {
-        this.cards.bringToTop(box);
-        box.getData("hot").setVisible(true);
-        this.tweens.add({ targets: tg, y: y - 26, scale: 1.04, angle: 0, duration: 90 });
-      });
-      z.on("pointerout", () => {
-        box.getData("hot").setVisible(false);
-        this.tweens.add({ targets: tg, y, scale: 1, angle: fan, duration: 90 });
-      });
+      // наведение (автор: «давай следующее — ховер по карточкам»): карта приподнимается с отскоком, за ней тёплый
+      // мягкий свет, с краёв поднимаются искры, по картинке пробегает блик, а остальные карты чуть отступают и тускнеют
+      z.on("pointerover", () => this.cardHover(box, tg, x, y, fan, true, boxes));
+      z.on("pointerout", () => this.cardHover(box, tg, x, y, fan, false, boxes));
       z.on("pointerup", () => onPick(box));
     });
     this.keyHandler = (num) => {
@@ -1089,14 +1418,26 @@ export class GameScene extends Phaser.Scene {
       this.nextHandler = go;
       const appear = () => {
         box.setScale(0, k);
-        this.tweens.add({ targets: box, scaleX: k, duration: 170, ease: "Sine.Out" });
+        this.tweens.add({ targets: box, scaleX: k, duration: 220, ease: "Back.Out" });
       };
       this.tweens.add({ targets: this.cardFx, alpha: 0, duration: 150 });
       if (from) {
-        for (const o of this.cards.list as Box[]) if (o !== from) this.tweens.add({ targets: o, alpha: 0, duration: 150 });
-        this.tweens.add({ targets: from, x: box.x, y: box.y, angle: 0, duration: 170, ease: "Sine.In" });
-        this.tweens.add({ targets: from, scaleX: 0, duration: 170, ease: "Sine.In", onComplete: () => { this.cards.removeAll(true); appear(); } });
+        // эффект выбора (Р36): остальные карты падают и гаснут, выбранная вжимается, взлетает со свечением,
+        // летит к листу итога и переворачивается в него со вспышкой
+        (this.cards.list as Box[]).forEach((o, i) => {
+          if (o === from) return;
+          this.tweens.add({ targets: o, y: o.y + 70, alpha: 0, angle: o.angle + (i % 2 ? 6 : -6), duration: 260, delay: i * 30, ease: "Quad.In" });
+        });
+        this.cards.bringToTop(from);
+        from.getData("hot")?.setVisible(true);
+        const s0 = from.scale;
         box.setScale(0, k);
+        this.tweens.chain({ targets: from, tweens: [
+          { scale: s0 * 0.93, duration: 70, ease: "Quad.Out" },
+          { scale: s0 * 1.1, y: from.y - 34, angle: 0, duration: 170, ease: "Back.Out" },
+          { x: box.x, y: box.y, scaleX: 0, scaleY: s0 * 1.15, duration: 230, ease: "Cubic.In",
+            onComplete: () => { this.cards.removeAll(true); this.flipFlash(box.x, box.y); appear(); } },
+        ] });
       } else {
         this.cards.removeAll(true);
         appear();
@@ -1112,6 +1453,8 @@ export class GameScene extends Phaser.Scene {
       this.drawPanel(ctx);
     }
     this.drawHud(L, ctx, true);
+    // новые уникальные карточки: вспышка и полёт в столбик (Р36)
+    if (!TALL) log.filter((l) => l.give).forEach((l, i) => this.giveFx(l.give!, 650 + i * 1100));
     return this.bigCard((add) => {
       if (text) {
         const t = txt(this, 0, 0, text, fs(text.length > 300 ? 26 : 29), C.ink, { font: "body", wrap: (TALL ? 1000 : 900) - 72, gap: 9 });
@@ -1127,20 +1470,50 @@ export class GameScene extends Phaser.Scene {
     this.drawPanel(ctx);
     this.drawHud(L, ctx, true);
     const color = key === "great" ? C.greenDark : key === "shame" ? C.redDark : C.brown;
-    return this.bigCard((add) => {
+    let st: Phaser.GameObjects.Container | null = null;
+    const done = this.bigCard((add) => {
       const head = txt(this, 0, 0, "Мама смотрит на три вещи:", fs(25), C.brown);
       add(head, head.height);
       for (const t of ticks) {
         const line = txt(this, 0, 0, (t.ok ? "✓  " : "✗  ") + t.label, fs(27), t.ok ? C.greenDark : C.redDark);
         add(line, line.height);
       }
-      const st = stamp(this, name, color);
+      st = stamp(this, name, color);
       st.setData({ dx: st.width / 2 + 6, top: st.height / 2 + 6 });
       add(st, st.height + 14);
       const body = txt(this, 0, 0, text, fs(27), C.ink, { font: "body", wrap: (TALL ? 1000 : 900) - 72, gap: 9 });
       add(body, body.height);
       this.addLog(add, log);
     }, null);
+    if (st) this.stampFx(st, color);
+    return done;
+  }
+
+  /** Печать опускается с ударом (Р36): падает сверху крупной и прозрачной, бьёт по листу — лист вздрагивает,
+   *  вокруг разлетаются капли краски её цвета и облачко пыли. */
+  stampFx(st: Phaser.GameObjects.Container, color: number) {
+    const sx = st.scaleX, ang = st.angle;
+    st.setScale(sx * 2.6).setAlpha(0).setAngle(ang - 14);
+    this.tweens.add({ targets: st, scale: sx, alpha: 1, angle: ang, delay: 420, duration: 190, ease: "Cubic.In",
+      onComplete: () => {
+        const box = st.parentContainer;
+        if (box) this.tweens.add({ targets: box, y: box.y + 6, duration: 50, yoyo: true });
+        this.cameras.main.shake(120, 0.003);
+        this.tweens.add({ targets: st, scale: sx * 1.06, duration: 70, yoyo: true });
+        if (!box) return;
+        for (let i = 0; i < 12; i++) {
+          const d = this.add.circle(st.x, st.y, 2 + Math.random() * 5, color, 0.85);
+          box.add(d);
+          const a = Math.random() * Math.PI * 2, r = st.width * (0.45 + Math.random() * 0.35);
+          this.tweens.add({ targets: d, x: st.x + Math.cos(a) * r, y: st.y + Math.sin(a) * r * 0.55, scale: 0.4,
+            duration: 260, ease: "Cubic.Out" });
+          this.tweens.add({ targets: d, alpha: 0, delay: 900, duration: 600 });
+        }
+        this.fxTextures();
+        const puff = this.add.image(st.x, st.y, "fx_glow").setTint(0xfff0d0).setAlpha(0.7).setDisplaySize(st.width * 1.4, st.height * 1.4);
+        box.addAt(puff, Math.max(0, box.getIndex(st)));
+        this.tweens.add({ targets: puff, scale: puff.scale * 1.8, alpha: 0, duration: 420, onComplete: () => puff.destroy() });
+      } });
   }
 
   // ------------------------------------------------------------ пропуск, доска, личное дело
@@ -1305,7 +1678,8 @@ export class GameScene extends Phaser.Scene {
     const tile = 88, gap = 12, perCol = 5, n = cards.length;
     for (let i = 0; i < n; i++) {
       const x = 30 + tile / 2 + Math.floor(i / perCol) * (tile + gap), y = H - 30 - tile / 2 - (i % perCol) * (tile + gap);
-      this.hand.add(this.handChip(L, cards[i] || null, x, y, tile, (t, tx) => this.showTip(x + this.hand.x + 300, y + this.hand.y - 60, t, tx), () => this.hideTip()));
+      this.hand.add(this.handChip(L, cards[i] || null, x, y, tile, (t, tx) => this.showTip(x + this.hand.x + 300, y + this.hand.y - 60, t, tx), () => this.hideTip())
+        .setData("card", cards[i]));
     }
 
     // под запиской: личное дело и титул; внизу справа: какая жизнь и меню

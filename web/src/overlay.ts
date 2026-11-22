@@ -11,8 +11,22 @@ const esc = (s: any) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<"
 export const overlayOpen = () => !el("overlay").hidden;
 
 /** Страница с кнопками: первая главная, остальные потише. Возвращает номер нажатой кнопки. */
+/** Печать на странице «Итог жизни»: красный оттиск в углу папки, падает с ударом (анимация — CSS .ov-stamp). */
+export function lifeStamp(label: string) {
+  const p = el("ov-panel");
+  p.querySelector(".ov-stamp")?.remove();
+  const s = document.createElement("div");
+  s.className = "ov-stamp";
+  s.textContent = label;
+  p.appendChild(s);
+  p.classList.remove("thud");
+  void p.offsetWidth;
+  p.classList.add("thud");
+}
+
 export function showButtons(title: string, html: string, labels: string[], system = false, wide = false, dossier = false): Promise<number> {
   return new Promise((res) => {
+    el("ov-panel").querySelector(".ov-stamp")?.remove();
     el("ov-panel").className = (system ? "sys" : "") + (wide ? " wide" : "") + (dossier ? " dossier" : "");
     el("overlay").className = dossier ? "desk" : "";
     el("ov-title").textContent = title;

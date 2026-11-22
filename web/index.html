@@ -78,6 +78,12 @@
         body.art-folder #ov-panel.dossier #ov-btn { align-self: flex-end; width: 40%; margin-top: 8px; }
       }
       /* холодный «казённый» вид: Небесная HR, список исправлений */
+      /* печать на «Итоге жизни»: падает крупной и прозрачной, бьёт — папка вздрагивает */
+      #ov-panel { position: relative; }
+      .ov-stamp { position: absolute; right: 13%; top: 42%; z-index: 3; pointer-events: none; font: 400 clamp(30px, 3.6vw, 62px)/1 "Ruslan Display", Georgia, serif; color: #b3261e; text-transform: uppercase; letter-spacing: 1px; padding: 14px 26px; border: 7px solid #b3261e; border-radius: 12px; outline: 3px solid #b3261e; outline-offset: -15px; opacity: 0.85; transform: rotate(-9deg); mix-blend-mode: multiply; animation: stampIn 0.32s 0.45s cubic-bezier(.5, 0, .9, .6) both; }
+      @keyframes stampIn { from { opacity: 0; transform: rotate(-22deg) scale(2.8); } to { opacity: 0.85; transform: rotate(-9deg) scale(1); } }
+      #ov-panel.thud { animation: thud 0.18s 0.77s ease-out; }
+      @keyframes thud { 0% { translate: 0 0; } 40% { translate: 0 7px; } 100% { translate: 0 0; } }
       #ov-panel.sys { background: #0f2236; color: #dff7f4; border: 4px solid #3fd6c8; box-shadow: 0 0 0 7px rgba(63, 214, 200, 0.22), 0 0 0 14px rgba(63, 214, 200, 0.12); font: 18px/1.55 "PT Mono", Menlo, monospace; }
       #ov-panel.sys #ov-title { font: 400 26px/1.2 "PT Mono", Menlo, monospace; color: #3fd6c8; }
       #ov-panel.sys #ov-btn { font: 400 20px "PT Mono", Menlo, monospace; background: #3fd6c8; color: #0f2236; border: 0; }
